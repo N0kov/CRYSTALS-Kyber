@@ -1,16 +1,16 @@
-Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
--------------------------------------------------------------------------------------------------
-| Tool Version              : Vivado v.2017.3 (win64) Build 2018833 Wed Oct  4 19:58:22 MDT 2017
-| Date                      : Sun Jan 10 01:43:05 2021
-| Host                      : XINGYF14 running 64-bit major release  (build 9200)
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version              : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date                      : Thu Apr  9 10:23:26 2026
+| Host                      : xanadu running 64-bit Manjaro Linux
 | Command                   : report_io -file Kyber_Client_io_placed.rpt
 | Design                    : Kyber_Client
 | Device                    : xc7a12t
 | Speed File                : -1
 | Package                   : cpg238
-| Package Version           : ENGINEERING SAMPLE 1.0 08/18/2017
-| Package Pin Delay Version : ENGINEERING SAMPLE 1.0 7/14/2017
--------------------------------------------------------------------------------------------------
+| Package Version           : PRODUCTION 1.1 10/30/2017
+| Package Pin Delay Version : PRODUCTION 1.0 7/14/2017
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 IO Information
 
@@ -276,7 +276,5 @@ Table of Contents
 +------------+-------------+------------+------------------------------+---------------+-------------+---------+------------+------+---------------------+----------------------+---------+------------+-----------+----------+------+------------------+--------------+-------------------+--------------+
 * Default value
 ** Special VCCO requirements may apply. Please consult the device family datasheet for specific guideline on VCCO requirements.
-*** Package files are in the ENGINEERING SAMPLE stage for this device. Package specifications with this designation are based on a released package design and validated with ENGINEERING SAMPLE devices. Package specifications with this designation are considered stable, however some pinout and mechanical specifications might change prior to the production release of the particular device. Package pinouts with this designation are to be used for PCB and Vivado® designs using ENGINEERING SAMPLE devices.
-
 
 

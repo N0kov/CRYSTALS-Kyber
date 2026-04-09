@@ -1,0 +1,13 @@
++====================+===================+==============================+
+| Launch Setup Clock | Launch Hold Clock | Pin                          |
++====================+===================+==============================+
+| clk                | clk               | ntt/BU/sum_in0_reg_reg[11]/D |
+| clk                | clk               | ntt/BU/sum_in0_reg_reg[10]/D |
+| clk                | clk               | ntt/BU/sum_in0_reg_reg[8]/D  |
+| clk                | clk               | ntt/BU/sum_in0_reg_reg[9]/D  |
+| clk                | clk               | ntt/BU/sum_in1_reg_reg[8]/D  |
+| clk                | clk               | ntt/BU/sum_in1_reg_reg[5]/D  |
+| clk                | clk               | ntt/BU/sum_in0_reg_reg[6]/D  |
+| clk                | clk               | ntt/BU/sum_in1_reg_reg[6]/D  |
+| clk                | clk               | ntt/BU/diff_in0_reg_reg[8]/D |
++--------------------+-------------------+------------------------------+

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="fifo_generator_7_synth_1" LaunchPart="xc7a12tcpg238-1" LaunchTime="1609947133">
-  <File Type="PA-TCL" Name="fifo_generator_7.tcl"/>
-  <File Type="REPORTS-TCL" Name="fifo_generator_7_reports.tcl"/>
+<GenRun Id="fifo_generator_7_synth_1" LaunchPart="xc7a12tcpg238-1" LaunchTime="1775753373">
+  <File Type="RDS-DCP" Name="fifo_generator_7.dcp"/>
   <File Type="RDS-RDS" Name="fifo_generator_7.vds"/>
+  <File Type="REPORTS-TCL" Name="fifo_generator_7_reports.tcl"/>
+  <File Type="PA-TCL" Name="fifo_generator_7.tcl"/>
   <File Type="RDS-UTIL" Name="fifo_generator_7_utilization_synth.rpt"/>
   <File Type="RDS-UTIL-PB" Name="fifo_generator_7_utilization_synth.pb"/>
-  <File Type="RDS-DCP" Name="fifo_generator_7.dcp"/>
-  <FileSet Name="sources" Type="BlockSrcs" RelSrcDir="$PSRCDIR/fifo_generator_7">
+  <FileSet Name="sources" Type="BlockSrcs" RelSrcDir="$PSRCDIR/fifo_generator_7" RelGenDir="$PGENDIR/fifo_generator_7">
     <File Path="$PSRCDIR/sources_1/ip/fifo_generator_7/fifo_generator_7.xci">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
@@ -19,7 +19,7 @@
       <Option Name="UseBlackboxStub" Val="1"/>
     </Config>
   </FileSet>
-  <FileSet Name="constrs_in" Type="BlockSrcs" RelSrcDir="$PSRCDIR/fifo_generator_7">
+  <FileSet Name="constrs_in" Type="BlockSrcs" RelSrcDir="$PSRCDIR/fifo_generator_7" RelGenDir="$PGENDIR/fifo_generator_7">
     <File Path="$PSRCDIR/sources_1/ip/fifo_generator_7/fifo_generator_7.xci">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
@@ -30,10 +30,16 @@
     <Config>
       <Option Name="TopModule" Val="fifo_generator_7"/>
       <Option Name="UseBlackboxStub" Val="1"/>
+    </Config>
+  </FileSet>
+  <FileSet Name="utils" Type="Utils" RelSrcDir="$PSRCDIR/utils_1" RelGenDir="$PGENDIR/utils_1">
+    <Filter Type="Utils"/>
+    <Config>
+      <Option Name="TopAutoSet" Val="TRUE"/>
     </Config>
   </FileSet>
   <Strategy Version="1" Minor="2">
-    <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2017"/>
+    <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025"/>
     <Step Id="synth_design"/>
   </Strategy>
 </GenRun>
