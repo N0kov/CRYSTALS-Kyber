@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
-module Kyber_Server(
+module Kyber_Server #(
+    parameter D_SEED = 256'h 2D7F73369973CD2D0348B1CC251AD82FDD1A6BDBE4106D0CAA9476B0A035997C
+)(
 	input clk, rst, start,
 	input wen,
 	input [2:0] k,
@@ -177,7 +179,7 @@ always @* case(state)
 endcase
 
 always @(posedge clk) case(state)
-    4'h 1 : d <= 256'h 2D7F73369973CD2D0348B1CC251AD82FDD1A6BDBE4106D0CAA9476B0A035997C;	// count = 0
+    4'h 1 : d <= D_SEED;
 	// 4'h 1 : d <= 256'h D926F38A65787A0E173FA91081EE6C40F33731730BFCA67B1C8C1D2A49930BD6;	// count = 1
 	// 4'h 1 : d <= 256'h 4533512FCCC71CC864BDDF8C139D750AF55DDCF32E2E9F5AC4190135E12D624B;	// count = 2
 	// 4'h 1 : d <= 256'h 2CFC4E9ABBD12698060B47B36D58B3BBF506B808380E18E8C1ED57F7F9580D05;	// count = 3

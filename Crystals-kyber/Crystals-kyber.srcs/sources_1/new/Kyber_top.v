@@ -1,5 +1,8 @@
 `timescale 1ns / 1ps
-module Kyber_top(
+module Kyber_top #(
+    parameter D_SEED = 256'h 2D7F73369973CD2D0348B1CC251AD82FDD1A6BDBE4106D0CAA9476B0A035997C,
+    parameter M_SEED = 256'h 157699F676FE09CC74A8A9A379FE0EC8137F4D87E1FAC806A4BBBEA5F7037C14
+)(
     input clk, rst, start,
     input [2:0] k,
     output ready_pk, ready_c,
@@ -8,7 +11,7 @@ module Kyber_top(
     output [31:0] dout_server, dout_client
 );
 
-Kyber_Server S(
+Kyber_Server #(.D_SEED(D_SEED)) S(
 .clk(clk),
 .rst(rst),
 .start(start),
@@ -22,7 +25,7 @@ Kyber_Server S(
 .valid(valid_server),
 .dout(dout_server)
 );
-Kyber_Client C(
+Kyber_Client #(.M_SEED(M_SEED)) C(
 .clk(clk),
 .rst(rst),
 .start(start),

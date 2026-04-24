@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
-module Kyber_Client(
+module Kyber_Client #(
+    parameter M_SEED = 256'h 157699F676FE09CC74A8A9A379FE0EC8137F4D87E1FAC806A4BBBEA5F7037C14
+)(
 	input clk, rst, start,
 	input wen,
 	input [2:0] k,
@@ -167,7 +169,7 @@ always @(posedge clk) begin
 	if(ena_sft)
 		m <= {m[1:0],m[255:2]};
 	else case(state)
-		6'h 1 : m <= 256'h 157699F676FE09CC74A8A9A379FE0EC8137F4D87E1FAC806A4BBBEA5F7037C14;	// count = 0
+		6'h 1 : m <= M_SEED;
 		// 6'h 1 : m <= 256'h 4620D7DDDB2A8240129390744CB82AEB013E841158D1C5F63172E68CDF97E7CD;	// count = 1
 		// 6'h 1 : m <= 256'h E996FFD02E4E36039BEB07DF9F48769873D4EC10712907D3A6F094D6FB683FF4;	// count = 2
 		// 6'h 1 : m <= 256'h 855EC9A8E942B9693922AFDFD6D2863B6D493CFED6BE84D60E5046C5C3FB74EA;	// count = 3
