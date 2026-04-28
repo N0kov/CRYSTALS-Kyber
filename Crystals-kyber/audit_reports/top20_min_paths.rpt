@@ -1,0 +1,1057 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Mon Apr 27 17:32:15 2026
+| Host         : xanadu running 64-bit Manjaro Linux
+| Command      : report_timing -max_paths 20 -delay_type min -sort_by group -input_pins -file /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/audit_reports/top20_min_paths.rpt
+| Design       : Kyber_Client
+| Device       : 7a12t-cpg238
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Synthesized
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.067ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[0]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[0]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.094     0.864    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.864    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.067    
+
+Slack (MET) :             0.067ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[12]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[12]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[12]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.094     0.864    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.864    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.067    
+
+Slack (MET) :             0.067ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[18]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[18]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[18]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.094     0.864    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.864    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.067    
+
+Slack (MET) :             0.067ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[24]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[24]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[24]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.094     0.864    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.864    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.067    
+
+Slack (MET) :             0.067ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[6]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.094     0.864    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.864    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.067    
+
+Slack (MET) :             0.068ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[2]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[2]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.093     0.863    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.863    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.068    
+
+Slack (MET) :             0.068ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[14]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[14]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[14]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.093     0.863    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.863    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.068    
+
+Slack (MET) :             0.068ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[20]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[20]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[20]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.093     0.863    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.863    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.068    
+
+Slack (MET) :             0.068ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[26]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[26]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[26]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.093     0.863    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.863    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.068    
+
+Slack (MET) :             0.068ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[8]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[8]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[8]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.093     0.863    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.863    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.068    
+
+Slack (MET) :             0.070ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[4]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[4]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.091     0.861    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.861    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.070    
+
+Slack (MET) :             0.070ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[16]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[16]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[16]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.091     0.861    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.861    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.070    
+
+Slack (MET) :             0.070ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[22]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[22]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[22]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.091     0.861    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.861    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.070    
+
+Slack (MET) :             0.070ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[28]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[28]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[28]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.091     0.861    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.861    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.070    
+
+Slack (MET) :             0.070ns  (arrival time - required time)
+  Source:                 hash/hash/RoundFunction/Reg/Q_buf_reg[10]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell RAMD32 clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.306ns  (logic 0.147ns (48.053%)  route 0.159ns (51.947%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    hash/hash/RoundFunction/Reg/clk_IBUF_BUFG
+                         FDRE                                         r  hash/hash/RoundFunction/Reg/Q_buf_reg[10]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  hash/hash/RoundFunction/Reg/Q_buf_reg[10]/Q
+                         net (fo=10, unplaced)        0.159     0.930    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         RAMD32                                       r  Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         RAMD32 (Hold_ramd32_CLK_I)
+                                                      0.091     0.861    Kyber_Client/hash_core_Client/fifo_generator_8/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.861    
+                         arrival time                           0.930    
+  -------------------------------------------------------------------
+                         slack                                  0.070    
+
+Slack (MET) :             0.079ns  (arrival time - required time)
+  Source:                 eta3_r_reg[66]/C
+                            (rising edge-triggered cell FDSE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            eta3_r_reg[68]_srl2___endp_r_reg_r_0/D
+                            (rising edge-triggered cell SRL16E clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.288ns  (logic 0.147ns (51.079%)  route 0.141ns (48.921%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    clk_IBUF_BUFG
+                         FDSE                                         r  eta3_r_reg[66]/C
+  -------------------------------------------------------------------    -------------------
+                         FDSE (Prop_fdse_C_Q)         0.147     0.772 r  eta3_r_reg[66]/Q
+                         net (fo=1, unplaced)         0.141     0.912    eta3_r_reg_n_0_[66]
+                         SRL16E                                       r  eta3_r_reg[68]_srl2___endp_r_reg_r_0/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    clk_IBUF_BUFG
+                         SRL16E                                       r  eta3_r_reg[68]_srl2___endp_r_reg_r_0/CLK
+                         clock pessimism             -0.209     0.770    
+                         SRL16E (Hold_srl16e_CLK_D)
+                                                      0.064     0.834    eta3_r_reg[68]_srl2___endp_r_reg_r_0
+  -------------------------------------------------------------------
+                         required time                         -0.834    
+                         arrival time                           0.912    
+  -------------------------------------------------------------------
+                         slack                                  0.079    
+
+Slack (MET) :             0.079ns  (arrival time - required time)
+  Source:                 Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell SRL16E clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.288ns  (logic 0.147ns (51.079%)  route 0.141ns (48.921%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         FDRE                                         r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         net (fo=1, unplaced)         0.141     0.912    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         SRL16E (Hold_srl16e_CLK_D)
+                                                      0.064     0.834    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.834    
+                         arrival time                           0.912    
+  -------------------------------------------------------------------
+                         slack                                  0.079    
+
+Slack (MET) :             0.079ns  (arrival time - required time)
+  Source:                 Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell SRL16E clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.288ns  (logic 0.147ns (51.079%)  route 0.141ns (48.921%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         FDRE                                         r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         net (fo=1, unplaced)         0.141     0.912    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         SRL16E (Hold_srl16e_CLK_D)
+                                                      0.064     0.834    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.834    
+                         arrival time                           0.912    
+  -------------------------------------------------------------------
+                         slack                                  0.079    
+
+Slack (MET) :             0.079ns  (arrival time - required time)
+  Source:                 Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell SRL16E clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.288ns  (logic 0.147ns (51.079%)  route 0.141ns (48.921%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         FDRE                                         r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         net (fo=1, unplaced)         0.141     0.912    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         SRL16E (Hold_srl16e_CLK_D)
+                                                      0.064     0.834    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.834    
+                         arrival time                           0.912    
+  -------------------------------------------------------------------
+                         slack                                  0.079    
+
+Slack (MET) :             0.079ns  (arrival time - required time)
+  Source:                 Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Destination:            Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                            (rising edge-triggered cell SRL16E clocked by clk  {rise@0.000ns fall@3.000ns period=6.000ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.288ns  (logic 0.147ns (51.079%)  route 0.141ns (48.921%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.979ns
+    Source Clock Delay      (SCD):    0.625ns
+    Clock Pessimism Removal (CPR):    0.209ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.147     0.147 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.337     0.485    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.026     0.511 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.114     0.625    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         FDRE                                         r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.147     0.772 r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         net (fo=1, unplaced)         0.141     0.912    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+                                                                      r  clk_IBUF_inst/I
+                         IBUF (Prop_ibuf_I_O)         0.336     0.336 r  clk_IBUF_inst/O
+                         net (fo=1, unplaced)         0.355     0.691    clk_IBUF
+                                                                      r  clk_IBUF_BUFG_inst/I
+                         BUFG (Prop_bufg_I_O)         0.029     0.720 r  clk_IBUF_BUFG_inst/O
+                         net (fo=5400, unplaced)      0.259     0.979    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         SRL16E                                       r  Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+                         clock pessimism             -0.209     0.770    
+                         SRL16E (Hold_srl16e_CLK_D)
+                                                      0.064     0.834    Kyber_Client/NTT_core_Client/butterfly_Cli/c_shift_ram_1/<hidden>/<hidden>/<hidden>
+  -------------------------------------------------------------------
+                         required time                         -0.834    
+                         arrival time                           0.912    
+  -------------------------------------------------------------------
+                         slack                                  0.079    
+
+
+
+
