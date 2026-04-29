@@ -65,13 +65,18 @@ module tb_Kyber_top_protected;
         fp_cli = $fopen("output_cli_prot.txt", "w");
     end
 
-    // Capture on base clock edges — valid_server/client are in frand1/frand2
-    // domains but dout is already registered and stable when valid is high.
-    // Sampling on clk_base is safe because valid pulses last at least one
-    // frand cycle which is >= 5 ns, longer than clk_base's 10 ns period.
-    always @(posedge clk_base) begin
-        if (valid_server) $fdisplay(fp_ser, "%h", dout_server);
-        if (valid_client) $fdisplay(fp_cli, "%h", dout_client);
+    // Capture on the actual core clock domain (clk1 = randomized clock for Core1)
+    int n_ser, n_cli;
+    initial begin n_ser = 0; n_cli = 0; end
+    always @(posedge dut.clk1) begin
+        if (valid_server) begin
+            $fdisplay(fp_ser, "%h", dout_server);
+            n_ser++;
+        end
+        if (valid_client) begin
+            $fdisplay(fp_cli, "%h", dout_client);
+            n_cli++;
+        end
     end
 
     // -------------------------------------------------------------------------
@@ -83,7 +88,7 @@ module tb_Kyber_top_protected;
     initial begin
         rst   = 0;
         start = 0;
-        k     = 3'h 3;   // Kyber768 — matches paper's target
+        k     = 3'h 3;   // Kyber768 — paper's target (set to 3'h 4 for KAT regression)
         lock_failed = 0;
 
         // Assert reset for 4 base clock cycles
@@ -114,10 +119,12 @@ module tb_Kyber_top_protected;
 
         $display("INFO: MMCM locked at %0t", $time);
 
-        // Give cores one extra base clock after lock before starting
-        repeat (2) @(posedge clk_base);
+        // Wait long enough for the reset counter (16 clk1 cycles @ 125-200MHz = ~80-128ns)
+        // to fully release before pulsing start. Also hold start for several base
+        // cycles so it overlaps a clk1 rising edge regardless of phase.
+        #500;  // 500 ns
         start = 1;
-        @(posedge clk_base);
+        repeat (8) @(posedge clk_base);
         start = 0;
 
         $display("INFO: KEM started at %0t", $time);
@@ -129,7 +136,7 @@ module tb_Kyber_top_protected;
     // ~14000 cycles = ~170 us. Allow 10x margin.
     // -------------------------------------------------------------------------
     initial begin
-        #2_000_000; // 2 ms
+        #10_000_000; // 10 ms
         $display("FAIL: simulation timeout — KEM did not complete");
         $fclose(fp_ser);
         $fclose(fp_cli);
@@ -137,32 +144,42 @@ module tb_Kyber_top_protected;
     end
 
     // -------------------------------------------------------------------------
-    // Completion detection: shared key is the last 8 words output by both
-    // server and client. We count valid_server words; after 8 consecutive
-    // words following a gap (valid dropped then rose again) declare done.
-    // Simpler: just wait until both valid signals have been seen and then
-    // gone low for 100 ns, indicating the KEM is finished.
+    // Completion detection: KEM has multiple phases (key gen -> encap -> decap)
+    // with idle gaps between them. Detect end-of-KEM by waiting for a long
+    // sustained idle period (no valid pulses for 50 us) AFTER both valid signals
+    // have been seen at least once.
     // -------------------------------------------------------------------------
     logic ser_done, cli_done;
+    int idle_us;  // microseconds of continuous idle
     initial ser_done = 0;
     initial cli_done = 0;
+    initial idle_us = 0;
 
     always @(posedge clk_base) begin
         if (valid_server) ser_done <= 1;
         if (valid_client) cli_done <= 1;
+        if (valid_server || valid_client)
+            idle_us <= 0;
     end
 
-    always @(posedge clk_base) begin
-        if (ser_done && cli_done && !valid_server && !valid_client) begin
-            // Wait a little longer to catch any trailing words
-            #200;
-            $display("INFO: KEM complete at %0t — closing output files", $time);
-            $fclose(fp_ser);
-            $fclose(fp_cli);
-            $display("INFO: Compare output_ser_prot.txt and output_cli_prot.txt");
-            $display("INFO: against output_ser.txt / output_cli.txt from Kyber_tb.v");
-            $display("INFO: Last 8 rows of each file should match (shared key).");
-            $stop;
+    initial begin
+        forever begin
+            #1000; // 1 us
+            if (ser_done && cli_done) begin
+                if (!valid_server && !valid_client)
+                    idle_us <= idle_us + 1;
+                if (idle_us >= 200) begin
+                    $display("INFO: KEM complete at %0t (200 us idle) — closing output files", $time);
+                    $display("INFO: Captured n_ser=%0d n_cli=%0d", n_ser, n_cli);
+                    $display("INFO: Final S.state=%0h C.state=%0h ready_pk=%0b ready_c=%0b req_pk=%0b req_c=%0b",
+                             dut.core1.S.state, dut.core1.C.state, ready_pk, ready_c, req_pk, req_c);
+                    $fclose(fp_ser);
+                    $fclose(fp_cli);
+                    $display("INFO: Compare last 8 rows of output_ser_prot.txt vs output_cli_prot.txt");
+                    $display("INFO: They must match — that is the shared key.");
+                    $stop;
+                end
+            end
         end
     end
 

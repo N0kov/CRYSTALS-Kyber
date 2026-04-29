@@ -64,21 +64,32 @@ module Kyber_top_protected #(
     BUFG bufg_core2 (.I(frand2), .O(clk2));
 
     // -------------------------------------------------------------------------
-    // Reset: assert whenever locked=0 (MMCM not ready) or rst is asserted.
-    // Kyber_Server/Client use active-high synchronous reset.
-    // We generate a 4-cycle synchronous reset pulse on clk1/clk2 after lock
-    // so the FSMs see a clean reset on their actual clock domain.
+    // Reset: Kyber_Server/Client use active-high synchronous reset.
+    // Strategy: hold a reset-pending counter in the clk1/clk2 domains,
+    // initialized to all-1s. Counter only counts down once the clock starts,
+    // so the FSM sees an asserted reset for the first few real clock edges.
+    // External rst (testbench) is also OR'd in.
     // -------------------------------------------------------------------------
     logic rst_core1, rst_core2;
-    logic [2:0] rst1_sr, rst2_sr;
+    logic [3:0] rst1_cnt = 4'hF;  // initialized to all-1s
+    logic [3:0] rst2_cnt = 4'hF;
 
-    always_ff @(posedge clk1)
-        rst1_sr <= {rst1_sr[1:0], (~locked | rst)};
-    always_ff @(posedge clk2)
-        rst2_sr <= {rst2_sr[1:0], (~locked | rst)};
+    always_ff @(posedge clk1) begin
+        if (rst || ~locked)
+            rst1_cnt <= 4'hF;
+        else if (rst1_cnt != 0)
+            rst1_cnt <= rst1_cnt - 1;
+    end
 
-    assign rst_core1 = |rst1_sr;
-    assign rst_core2 = |rst2_sr;
+    always_ff @(posedge clk2) begin
+        if (rst || ~locked)
+            rst2_cnt <= 4'hF;
+        else if (rst2_cnt != 0)
+            rst2_cnt <= rst2_cnt - 1;
+    end
+
+    assign rst_core1 = (rst1_cnt != 0);
+    assign rst_core2 = (rst2_cnt != 0);
 
     // -------------------------------------------------------------------------
     // Primary Kyber core (Core1) — real key pair (count=0 KAT seeds)

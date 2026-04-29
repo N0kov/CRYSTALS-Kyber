@@ -64,7 +64,7 @@ reg raddr_RAM2_lsb_r1, raddr_RAM2_lsb_r2;
 
 reg [6:0] ctr_i;
 reg [5:0] ctr_j;
-reg [6:0] ctr_k;
+(* MAX_FANOUT = 20 *) reg [6:0] ctr_k;
 reg [6:0] ctr_group;
 wire flag_j, flag_k;
 

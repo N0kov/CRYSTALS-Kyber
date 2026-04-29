@@ -1,0 +1,90 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Mon Apr 27 17:32:15 2026
+| Host         : xanadu running 64-bit Manjaro Linux
+| Command      : report_utilization -hierarchical -file /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/audit_reports/utilization_hier.rpt
+| Design       : Kyber_Client
+| Device       : xc7a12tcpg238-1
+| Speed File   : -1
+| Design State : Synthesized
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++-------------------------------------+------------------------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+|               Instance              |                     Module                     | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++-------------------------------------+------------------------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+| Kyber_Client                        |                                          (top) |       6955 |       5586 |    1090 |  279 | 3994 |      1 |      4 |          2 |
+|   (Kyber_Client)                    |                                          (top) |        246 |         76 |       0 |  170 |  580 |      0 |      0 |          0 |
+|   DFIFO                             |                               fifo_generator_6 |        353 |         97 |     256 |    0 |   70 |      0 |      0 |          0 |
+|     U0                              |       fifo_generator_6_fifo_generator_v13_2_14 |        353 |         97 |     256 |    0 |   70 |      0 |      0 |          0 |
+|       inst_fifo_gen                 | fifo_generator_6_fifo_generator_v13_2_14_synth |        353 |         97 |     256 |    0 |   70 |      0 |      0 |          0 |
+|         gconvfifo.rf                |            fifo_generator_6_fifo_generator_top |        353 |         97 |     256 |    0 |   70 |      0 |      0 |          0 |
+|           grf.rf                    |        fifo_generator_6_fifo_generator_ramfifo |        353 |         97 |     256 |    0 |   70 |      0 |      0 |          0 |
+|             gntv_or_sync_fifo.mem   |                        fifo_generator_6_memory |        304 |         48 |     256 |    0 |   24 |      0 |      0 |          0 |
+|               gdm.dm_gen.dm         |                          fifo_generator_6_dmem |        304 |         48 |     256 |    0 |   24 |      0 |      0 |          0 |
+|   IFIFO                             |                               fifo_generator_2 |        134 |         46 |      88 |    0 |   64 |      0 |      0 |          0 |
+|     U0                              |       fifo_generator_2_fifo_generator_v13_2_14 |        134 |         46 |      88 |    0 |   64 |      0 |      0 |          0 |
+|       inst_fifo_gen                 | fifo_generator_2_fifo_generator_v13_2_14_synth |        134 |         46 |      88 |    0 |   64 |      0 |      0 |          0 |
+|         gconvfifo.rf                |            fifo_generator_2_fifo_generator_top |        134 |         46 |      88 |    0 |   64 |      0 |      0 |          0 |
+|           grf.rf                    |        fifo_generator_2_fifo_generator_ramfifo |        134 |         46 |      88 |    0 |   64 |      0 |      0 |          0 |
+|             gntv_or_sync_fifo.mem   |                        fifo_generator_2_memory |        104 |         16 |      88 |    0 |   32 |      0 |      0 |          0 |
+|               gdm.dm_gen.dm         |                          fifo_generator_2_dmem |        104 |         16 |      88 |    0 |   32 |      0 |      0 |          0 |
+|   OFIFO                             |                               fifo_generator_3 |        485 |        117 |     368 |    0 |   80 |      0 |      0 |          0 |
+|     U0                              |       fifo_generator_3_fifo_generator_v13_2_14 |        485 |        117 |     368 |    0 |   80 |      0 |      0 |          0 |
+|       inst_fifo_gen                 | fifo_generator_3_fifo_generator_v13_2_14_synth |        485 |        117 |     368 |    0 |   80 |      0 |      0 |          0 |
+|         gconvfifo.rf                |            fifo_generator_3_fifo_generator_top |        485 |        117 |     368 |    0 |   80 |      0 |      0 |          0 |
+|           grf.rf                    |        fifo_generator_3_fifo_generator_ramfifo |        485 |        117 |     368 |    0 |   80 |      0 |      0 |          0 |
+|             gntv_or_sync_fifo.mem   |                        fifo_generator_3_memory |        436 |         68 |     368 |    0 |   34 |      0 |      0 |          0 |
+|               gdm.dm_gen.dm         |                          fifo_generator_3_dmem |        436 |         68 |     368 |    0 |   34 |      0 |      0 |          0 |
+|   decode                            |                                  decode_Client |         59 |         59 |       0 |    0 |   86 |      0 |      0 |          0 |
+|   encode                            |                                  encode_Client |        144 |        144 |       0 |    0 |   59 |      0 |      0 |          0 |
+|   hash                              |                               hash_core_Client |       3883 |       3505 |     378 |    0 | 1980 |      0 |      0 |          0 |
+|     (hash)                          |                               hash_core_Client |        256 |        256 |       0 |    0 |   41 |      0 |      0 |          0 |
+|     decode                          |                                  decode_keccak |         94 |         94 |       0 |    0 |   88 |      0 |      0 |          0 |
+|     fifo0                           |                               fifo_generator_0 |        266 |         74 |     192 |    0 |   72 |      0 |      0 |          0 |
+|       U0                            |       fifo_generator_0_fifo_generator_v13_2_14 |        266 |         74 |     192 |    0 |   72 |      0 |      0 |          0 |
+|         inst_fifo_gen               | fifo_generator_0_fifo_generator_v13_2_14_synth |        266 |         74 |     192 |    0 |   72 |      0 |      0 |          0 |
+|           gconvfifo.rf              |            fifo_generator_0_fifo_generator_top |        266 |         74 |     192 |    0 |   72 |      0 |      0 |          0 |
+|             grf.rf                  |        fifo_generator_0_fifo_generator_ramfifo |        266 |         74 |     192 |    0 |   72 |      0 |      0 |          0 |
+|               gntv_or_sync_fifo.mem |                        fifo_generator_0_memory |        228 |         36 |     192 |    0 |   36 |      0 |      0 |          0 |
+|                 gdm.dm_gen.dm       |                          fifo_generator_0_dmem |        228 |         36 |     192 |    0 |   36 |      0 |      0 |          0 |
+|     fifo1                           |                               fifo_generator_1 |        190 |         62 |     128 |    0 |   60 |      0 |      0 |          0 |
+|       U0                            |       fifo_generator_1_fifo_generator_v13_2_14 |        190 |         62 |     128 |    0 |   60 |      0 |      0 |          0 |
+|         inst_fifo_gen               | fifo_generator_1_fifo_generator_v13_2_14_synth |        190 |         62 |     128 |    0 |   60 |      0 |      0 |          0 |
+|           gconvfifo.rf              |            fifo_generator_1_fifo_generator_top |        190 |         62 |     128 |    0 |   60 |      0 |      0 |          0 |
+|             grf.rf                  |        fifo_generator_1_fifo_generator_ramfifo |        190 |         62 |     128 |    0 |   60 |      0 |      0 |          0 |
+|               gntv_or_sync_fifo.mem |                        fifo_generator_1_memory |        152 |         24 |     128 |    0 |   24 |      0 |      0 |          0 |
+|                 gdm.dm_gen.dm       |                          fifo_generator_1_dmem |        152 |         24 |     128 |    0 |   24 |      0 |      0 |          0 |
+|     fifo2                           |                               fifo_generator_7 |         59 |         25 |      34 |    0 |   53 |      0 |      0 |          0 |
+|       U0                            |       fifo_generator_7_fifo_generator_v13_2_14 |         59 |         25 |      34 |    0 |   53 |      0 |      0 |          0 |
+|         inst_fifo_gen               | fifo_generator_7_fifo_generator_v13_2_14_synth |         59 |         25 |      34 |    0 |   53 |      0 |      0 |          0 |
+|           gconvfifo.rf              |            fifo_generator_7_fifo_generator_top |         59 |         25 |      34 |    0 |   53 |      0 |      0 |          0 |
+|             grf.rf                  |        fifo_generator_7_fifo_generator_ramfifo |         59 |         25 |      34 |    0 |   53 |      0 |      0 |          0 |
+|     fifo8                           |                               fifo_generator_8 |         43 |         19 |      24 |    0 |   56 |      0 |      0 |          0 |
+|       U0                            |       fifo_generator_8_fifo_generator_v13_2_14 |         43 |         19 |      24 |    0 |   56 |      0 |      0 |          0 |
+|         inst_fifo_gen               | fifo_generator_8_fifo_generator_v13_2_14_synth |         43 |         19 |      24 |    0 |   56 |      0 |      0 |          0 |
+|           gconvfifo.rf              |            fifo_generator_8_fifo_generator_top |         43 |         19 |      24 |    0 |   56 |      0 |      0 |          0 |
+|             grf.rf                  |        fifo_generator_8_fifo_generator_ramfifo |         43 |         19 |      24 |    0 |   56 |      0 |      0 |          0 |
+|     hash                            |                                     Keccak1600 |       2975 |       2975 |       0 |    0 | 1610 |      0 |      0 |          0 |
+|       FSM                           |                                   StateMachine |        125 |        125 |       0 |    0 |   10 |      0 |      0 |          0 |
+|       RoundFunction                 |                                          Round |       2850 |       2850 |       0 |    0 | 1600 |      0 |      0 |          0 |
+|         Reg                         |                                   RegisterFDRE |       1698 |       1698 |       0 |    0 | 1600 |      0 |      0 |          0 |
+|         T                           |                                          theta |       1152 |       1152 |       0 |    0 |    0 |      0 |      0 |          0 |
+|   ntt                               |                                NTT_core_Client |       1651 |       1542 |       0 |  109 | 1075 |      1 |      4 |          2 |
+|     (ntt)                           |                                NTT_core_Client |        817 |        817 |       0 |    0 |  417 |      0 |      0 |          0 |
+|     BU                              |                                  butterfly_Cli |        707 |        653 |       0 |   54 |  512 |      0 |      0 |          2 |
+|       (BU)                          |                                  butterfly_Cli |        449 |        425 |       0 |   24 |  304 |      0 |      0 |          0 |
+|       R0                            |                                          reduc |        126 |        115 |       0 |   11 |   96 |      0 |      0 |          0 |
+|       R1                            |                                        reduc_0 |        125 |        114 |       0 |   11 |   96 |      0 |      0 |          0 |
++-------------------------------------+------------------------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+
