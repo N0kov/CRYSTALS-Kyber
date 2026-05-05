@@ -15,6 +15,12 @@
 
 module tb_Kyber_top_protected;
 
+    // Must match the .COUNTERMEASURE() value passed to the DUT below.
+    // Switch this to "DUPLICATION", "MASKING", or "NONE" together with
+    // the DUT instantiation parameter. Generate-blocks below use this
+    // to pick the correct internal hierarchy references for each mode.
+    localparam DUT_CM = "DUPLICATION";
+
     // 100 MHz base clock (10 ns period)
     localparam CLK_HALF     = 5;        // ns
     localparam LOCK_TIMEOUT = 10_000;   // ns = 10 us
@@ -30,6 +36,7 @@ module tb_Kyber_top_protected;
     // DUT
     // -------------------------------------------------------------------------
     Kyber_top_protected #(
+        .COUNTERMEASURE("DUPLICATION"), // change this AND DUT_CM above to switch modes
         .USE_TRNG  (0),
         .PRNG_SEED (32'hDEADBEEF)
     ) dut (
@@ -65,19 +72,37 @@ module tb_Kyber_top_protected;
         fp_cli = $fopen("output_cli_prot.txt", "w");
     end
 
-    // Capture on the actual core clock domain (clk1 = randomized clock for Core1)
+    // Capture on the actual core clock. In DUPLICATION mode that's the
+    // randomized clk1 inside gen_duplication; in MASKING/NONE mode the core
+    // is clocked by clk_base directly. Generate-block picks the right one so
+    // the testbench elaborates in any configuration.
     int n_ser, n_cli;
     initial begin n_ser = 0; n_cli = 0; end
-    always @(posedge dut.clk1) begin
-        if (valid_server) begin
-            $fdisplay(fp_ser, "%h", dout_server);
-            n_ser++;
+    generate
+        if (DUT_CM == "DUPLICATION") begin: g_capture_dup
+            always @(posedge dut.gen_duplication.clk1) begin
+                if (valid_server) begin
+                    $fdisplay(fp_ser, "%h", dout_server);
+                    n_ser++;
+                end
+                if (valid_client) begin
+                    $fdisplay(fp_cli, "%h", dout_client);
+                    n_cli++;
+                end
+            end
+        end else begin: g_capture_single
+            always @(posedge clk_base) begin
+                if (valid_server) begin
+                    $fdisplay(fp_ser, "%h", dout_server);
+                    n_ser++;
+                end
+                if (valid_client) begin
+                    $fdisplay(fp_cli, "%h", dout_client);
+                    n_cli++;
+                end
+            end
         end
-        if (valid_client) begin
-            $fdisplay(fp_cli, "%h", dout_client);
-            n_cli++;
-        end
-    end
+    endgenerate
 
     // -------------------------------------------------------------------------
     // Stimulus
@@ -88,7 +113,7 @@ module tb_Kyber_top_protected;
     initial begin
         rst   = 0;
         start = 0;
-        k     = 3'h 3;   // Kyber768 — paper's target (set to 3'h 4 for KAT regression)
+        k     = 3'h 4;   // Kyber1024 — matches regression_gold/ KAT (revert to 3'h 3 for paper-target sims)
         lock_failed = 0;
 
         // Assert reset for 4 base clock cycles
@@ -100,7 +125,11 @@ module tb_Kyber_top_protected;
         // Wait for MMCM lock with timeout
         fork
             begin : wait_lock
-                @(posedge locked);
+                // wait() is level-triggered: returns immediately if locked is already 1
+                // (the case in MASKING / NONE modes, where there's no MMCM and locked
+                // is tied to 1'b1 from time 0). DUPLICATION mode still needs to wait
+                // for the actual MMCM rising edge.
+                wait (locked === 1'b1);
             end
             begin : timeout
                 #LOCK_TIMEOUT;
@@ -171,8 +200,8 @@ module tb_Kyber_top_protected;
                 if (idle_us >= 200) begin
                     $display("INFO: KEM complete at %0t (200 us idle) — closing output files", $time);
                     $display("INFO: Captured n_ser=%0d n_cli=%0d", n_ser, n_cli);
-                    $display("INFO: Final S.state=%0h C.state=%0h ready_pk=%0b ready_c=%0b req_pk=%0b req_c=%0b",
-                             dut.core1.S.state, dut.core1.C.state, ready_pk, ready_c, req_pk, req_c);
+                    $display("INFO: ready_pk=%0b ready_c=%0b req_pk=%0b req_c=%0b",
+                             ready_pk, ready_c, req_pk, req_c);
                     $fclose(fp_ser);
                     $fclose(fp_cli);
                     $display("INFO: Compare last 8 rows of output_ser_prot.txt vs output_cli_prot.txt");

@@ -38,6 +38,8 @@ set files_to_add [list \
     [file join $NH_DIR   "d_ff.sv"] \
     [file join $NH_DIR   "clock_mux.sv"] \
     [file join $NH_DIR   "rng.sv"] \
+    [file join $NH_DIR   "mask_csprng.sv"] \
+    [file join $NH_DIR   "mask_polyfifo.sv"] \
     [file join $NH_DIR   "rand_clk_gen.sv"] \
     [file join $SRC_IMP  "imports/_to_32bits.v"] \
     [file join $SRC_IMP  "imports/decode_Client.v"] \
@@ -58,6 +60,11 @@ set files_to_add [list \
     [file join $SRC_NEW  "decode_keccak.v"] \
     [file join $SRC_NEW  "mux4to2.v"] \
     [file join $SRC_NEW  "Kyber_top.v"] \
+    [file join $SRC_IMP  "new/NTT_core_Client_masked.v"] \
+    [file join $SRC_IMP  "new/NTT_core_Server_masked.v"] \
+    [file join $SRC_IMP  "new/Kyber_Client_masked.v"] \
+    [file join $SRC_IMP  "new/Kyber_Server_masked.v"] \
+    [file join $SRC_NEW  "Kyber_top_masked.v"] \
     [file join $NH_DIR   "Kyber_top_protected.sv"] \
     [file join $NH_DIR   "tb_Kyber_top_protected.sv"] \
 ]

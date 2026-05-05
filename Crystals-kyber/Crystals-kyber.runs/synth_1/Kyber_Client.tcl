@@ -4,7 +4,7 @@
 
 set TIME_start [clock seconds] 
 namespace eval ::optrace {
-  variable script "/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1/Kyber_Client.tcl"
+  variable script "/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1/Kyber_Client.tcl"
   variable category "vivado_synth"
 }
 
@@ -58,140 +58,142 @@ if {$::dispatch::connected} {
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param general.usePosixSpawnForFork 1
 OPTRACE "Creating in-memory project" START { }
-create_project -in_memory -part xc7a12tcpg238-1
+create_project -in_memory -part xc7a35tcsg324-1
 
 set_param project.singleFileAddWarning.threshold 0
 set_param project.compositeFile.enableAutoGeneration 0
 set_param synth.vivado.isSynthRun true
 set_msg_config -source 4 -id {IP_Flow 19-2162} -severity warning -new_severity info
-set_property webtalk.parent_dir /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.cache/wt [current_project]
-set_property parent.project_path /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.xpr [current_project]
+set_property webtalk.parent_dir /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.cache/wt [current_project]
+set_property parent.project_path /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.xpr [current_project]
 set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
-set_property ip_output_repo /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.cache/ip [current_project]
+set_property ip_output_repo /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/phi.coe
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/invphi.coe
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/phi_rev.coe
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/invphi_rev.coe
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/pwphi_rev.coe
-add_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/pwphi.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/phi.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/invphi.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/phi_rev.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/invphi_rev.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/pwphi_rev.coe
+add_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/pwphi.coe
 read_verilog -library xil_defaultlib {
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/reduc.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/hash_core_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/hash_core_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/pattern.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/decode_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/encode_Server.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/decode_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/encode_Client.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/decode_keccak.v
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/mux4to2.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/reduc.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/hash_core_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/hash_core_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/pattern.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/decode_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/encode_Server.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/decode_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/encode_Client.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/decode_keccak.v
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/mux4to2.v
 }
 read_vhdl -library xil_defaultlib {
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/pi.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/RegisterFDRE.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/chi.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/iota.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/StateMachine.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/rho.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/Keccak1600.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/theta.vhd
-  /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/Round.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/pi.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/RegisterFDRE.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/chi.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/iota.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/StateMachine.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/rho.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/Keccak1600.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/theta.vhd
+  /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/imports/Round.vhd
 }
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_6/fifo_generator_6.xci
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/mult_gen_0/mult_gen_0.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/mult_gen_0/mult_gen_0_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_8/fifo_generator_8.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_1/blk_mem_gen_1.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_1/blk_mem_gen_1_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_7/fifo_generator_7.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_7/fifo_generator_7.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_7/fifo_generator_7_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_2/blk_mem_gen_2.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_2/blk_mem_gen_2_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_6/fifo_generator_6.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_6_1/fifo_generator_6.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_6_1/fifo_generator_6_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_0/c_shift_ram_0.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_0/c_shift_ram_0_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_5/fifo_generator_5.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_5/fifo_generator_5.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_5/fifo_generator_5_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_1/c_shift_ram_1.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_1/c_shift_ram_1_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_4/fifo_generator_4.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_4/fifo_generator_4.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_4/fifo_generator_4_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_11/c_shift_ram_11.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_11/c_shift_ram_11_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_3/fifo_generator_3.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_3/fifo_generator_3.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_3/fifo_generator_3_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_2/c_shift_ram_2.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_2/c_shift_ram_2_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_2/fifo_generator_2.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_3/c_shift_ram_3.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_3/c_shift_ram_3_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_1/fifo_generator_1.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_1/fifo_generator_1.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_1/fifo_generator_1_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_4/c_shift_ram_4.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_4/c_shift_ram_4_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_0/fifo_generator_0.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_0/fifo_generator_0.xdc]
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_0/fifo_generator_0_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_5/c_shift_ram_5.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_5/c_shift_ram_5_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_7/dist_mem_gen_7.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_7/dist_mem_gen_7_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_6/c_shift_ram_6.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_6/c_shift_ram_6_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_8/c_shift_ram_8.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_8/c_shift_ram_8_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_6/dist_mem_gen_6.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_6/dist_mem_gen_6_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_9/c_shift_ram_9.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_9/c_shift_ram_9_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_5/dist_mem_gen_5.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_5/dist_mem_gen_5_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_5/dist_mem_gen_5.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_5/dist_mem_gen_5_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_9/c_shift_ram_9.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_9/c_shift_ram_9_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_6/dist_mem_gen_6.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_6/dist_mem_gen_6_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_8/c_shift_ram_8.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_8/c_shift_ram_8_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_7/dist_mem_gen_7.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/dist_mem_gen_7/dist_mem_gen_7_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_6/c_shift_ram_6.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_6/c_shift_ram_6_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_0/fifo_generator_0.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_0/fifo_generator_0.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_0/fifo_generator_0_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_5/c_shift_ram_5.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_5/c_shift_ram_5_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_1/fifo_generator_1.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_1/fifo_generator_1.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_1/fifo_generator_1_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_4/c_shift_ram_4.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_4/c_shift_ram_4_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_2/fifo_generator_2.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_3/c_shift_ram_3.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_3/c_shift_ram_3_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_3/fifo_generator_3.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_3/fifo_generator_3.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_3/fifo_generator_3_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_2/c_shift_ram_2.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_2/c_shift_ram_2_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_4/fifo_generator_4.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_4/fifo_generator_4.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_4/fifo_generator_4_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_11/c_shift_ram_11.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_11/c_shift_ram_11_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_5/fifo_generator_5.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_5/fifo_generator_5.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_5/fifo_generator_5_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_1/c_shift_ram_1.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_1/c_shift_ram_1_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_7/fifo_generator_7.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_7/fifo_generator_7.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_7/fifo_generator_7_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/c_shift_ram_0/c_shift_ram_0.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_0/c_shift_ram_0_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/fifo_generator_8/fifo_generator_8.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8.xdc]
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_2/blk_mem_gen_2.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_2/blk_mem_gen_2_ooc.xdc]
 
-read_ip -quiet /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/mult_gen_0/mult_gen_0.xci
-set_property used_in_implementation false [get_files -all /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/mult_gen_0/mult_gen_0_ooc.xdc]
+read_ip -quiet /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/blk_mem_gen_1/blk_mem_gen_1.xci
+set_property used_in_implementation false [get_files -all /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/blk_mem_gen_1/blk_mem_gen_1_ooc.xdc]
 
 OPTRACE "Adding files" END { }
 # Mark all dcp files as not used in implementation to prevent them from being
@@ -202,14 +204,16 @@ OPTRACE "Adding files" END { }
 foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
   set_property used_in_implementation false $dcp
 }
-read_xdc /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/constrs_1/imports/new/constr.xdc
-set_property used_in_implementation false [get_files /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/constrs_1/imports/new/constr.xdc]
+read_xdc /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/constrs_1/imports/new/constr.xdc
+set_property used_in_implementation false [get_files /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/constrs_1/imports/new/constr.xdc]
 
 set_param ips.enableIPCacheLiteLoad 1
+
+read_checkpoint -auto_incremental -incremental /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/utils_1/imports/synth_1/Kyber_Client.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
-synth_design -top Kyber_Client -part xc7a12tcpg238-1
+synth_design -top Kyber_Client -part xc7a35tcsg324-1
 OPTRACE "synth_design" END { }
 if { [get_msg_config -count -severity {CRITICAL WARNING}] > 0 } {
  send_msg_id runtcl-6 info "Synthesis results are not added to the cache due to CRITICAL_WARNING"
@@ -222,7 +226,7 @@ set_param constraints.enableBinaryConstraints false
 write_checkpoint -force -noxdef Kyber_Client.dcp
 OPTRACE "write_checkpoint" END { }
 OPTRACE "synth reports" START { REPORT }
-generate_parallel_reports -reports { "report_utilization -file Kyber_Client_utilization_synth.rpt -pb _to_32bits_v2_utilization_synth.pb"  } 
+generate_parallel_reports -reports { "report_utilization -file Kyber_Client_utilization_synth.rpt -pb Kyber_Client_utilization_synth.pb"  } 
 OPTRACE "synth reports" END { }
 file delete __synthesis_is_running__
 close [open __synthesis_is_complete__ w]

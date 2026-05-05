@@ -3,22 +3,22 @@
 # SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Thu Apr  9 09:51:33 2026
-# Process ID         : 602849
-# Current directory  : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1
+# Start of session at: Mon May  4 17:45:34 2026
+# Process ID         : 127359
+# Current directory  : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1
 # Command line       : vivado -log mult_gen_0.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source mult_gen_0.tcl
-# Log file           : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1/mult_gen_0.vds
-# Journal file       : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1/vivado.jou
+# Log file           : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1/mult_gen_0.vds
+# Journal file       : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/mult_gen_0_synth_1/vivado.jou
 # Running On         : xanadu
 # Platform           : ManjaroLinux
 # Operating System   : Manjaro Linux
 # Processor Detail   : Intel(R) Core(TM) Ultra 9 185H
-# CPU Frequency      : 2400.000 MHz
+# CPU Frequency      : 1461.803 MHz
 # CPU Physical cores : 16
 # CPU Logical cores  : 16
 # Host memory        : 33240 MB
 # Swap memory        : 51522 MB
 # Total Virtual      : 84762 MB
-# Available Virtual  : 52497 MB
+# Available Virtual  : 73005 MB
 #-----------------------------------------------------------
 source mult_gen_0.tcl -notrace

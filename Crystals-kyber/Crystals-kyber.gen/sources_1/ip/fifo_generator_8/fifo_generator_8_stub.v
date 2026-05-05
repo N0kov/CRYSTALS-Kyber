@@ -2,13 +2,13 @@
 // Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-// Date        : Thu Apr  9 09:51:46 2026
+// Date        : Mon May  4 17:46:36 2026
 // Host        : xanadu running 64-bit Manjaro Linux
 // Command     : write_verilog -force -mode synth_stub
-//               /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8_stub.v
+//               /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_8/fifo_generator_8_stub.v
 // Design      : fifo_generator_8
 // Purpose     : Stub declaration of top-level module interface
-// Device      : xc7a12tcpg238-1
+// Device      : xc7a35tcsg324-1
 // --------------------------------------------------------------------------------
 
 // This empty module with port declaration file causes synthesis tools to infer a black box for IP.

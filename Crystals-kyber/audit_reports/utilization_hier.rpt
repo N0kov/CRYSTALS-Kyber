@@ -1,11 +1,11 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date         : Mon Apr 27 17:32:15 2026
+| Date         : Mon May  4 18:25:41 2026
 | Host         : xanadu running 64-bit Manjaro Linux
 | Command      : report_utilization -hierarchical -file /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/audit_reports/utilization_hier.rpt
 | Design       : Kyber_Client
-| Device       : xc7a12tcpg238-1
+| Device       : xc7a35tcsg324-1
 | Speed File   : -1
 | Design State : Synthesized
 ----------------------------------------------------------------------------------------------------------------------------------------------

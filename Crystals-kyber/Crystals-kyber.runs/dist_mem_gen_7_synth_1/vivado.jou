@@ -3,22 +3,22 @@
 # SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Thu Apr  9 09:50:19 2026
-# Process ID         : 598543
-# Current directory  : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1
+# Start of session at: Mon May  4 17:46:40 2026
+# Process ID         : 129732
+# Current directory  : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1
 # Command line       : vivado -log dist_mem_gen_7.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source dist_mem_gen_7.tcl
-# Log file           : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1/dist_mem_gen_7.vds
-# Journal file       : /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1/vivado.jou
+# Log file           : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1/dist_mem_gen_7.vds
+# Journal file       : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/dist_mem_gen_7_synth_1/vivado.jou
 # Running On         : xanadu
 # Platform           : ManjaroLinux
 # Operating System   : Manjaro Linux
 # Processor Detail   : Intel(R) Core(TM) Ultra 9 185H
-# CPU Frequency      : 2000.006 MHz
+# CPU Frequency      : 2000.000 MHz
 # CPU Physical cores : 16
 # CPU Logical cores  : 16
 # Host memory        : 33240 MB
 # Swap memory        : 51522 MB
 # Total Virtual      : 84762 MB
-# Available Virtual  : 58808 MB
+# Available Virtual  : 70419 MB
 #-----------------------------------------------------------
 source dist_mem_gen_7.tcl -notrace
