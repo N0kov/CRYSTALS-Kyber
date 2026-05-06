@@ -56,6 +56,34 @@ wire [12:0] diff_out0_q, diff_out1_q;
 // reg [11:0] sum_out0_reg, sum_out1_reg;
 // reg [11:0] diff_out0_reg, diff_out1_reg;
 
+// Stage 3.d.4 (S3b-2 fix): initial blocks for sim cleanup. Real BRAM/FF
+// power up at 0; xsim leaves them X without explicit init. With X in BU's
+// internal pipeline, the mask-share BU_m's X output writes X to RAM_m at
+// startup, corrupting downstream reads. These initial blocks match real
+// hardware behavior and are synthesis-equivalent to no-op.
+initial begin
+    add0_a0 = 12'h0; add1_a0 = 12'h0; add0_a1 = 12'h0; sub1_s0 = 12'h0;
+    q_sum0 = 13'h0; q_sum1 = 13'h0; q_diff0 = 13'h0; q_diff1 = 13'h0;
+    sum_in0_p1 = 13'h0; sum_in1_p1 = 13'h0;
+    q_sum0_p1 = 13'h0; q_sum1_p1 = 13'h0;
+    sel_a1_p1 = 1'b0; flag_add_p1 = 1'b0;
+    in0_p1 = 24'h0;
+    sum_in0_reg = 12'h0; sum_in1_reg = 12'h0;
+    diff_in0_reg = 12'h0; diff_in1_reg = 12'h0;
+    tw_reg = 24'h0;
+    dec0 = 12'h0; dec1 = 12'h0;
+    sum_in0_sr_r1 = 12'h0; sum_in1_sr_r1 = 12'h0;
+    red0_r1 = 12'h0; red1_r1 = 12'h0;
+    flag_sr_r1 = 4'h0;
+    flag_uv_r1 = 1'b0; flag_uv_r2 = 1'b0;
+    add1_a2 = 12'h0; add0_a3 = 12'h0; add1_a3 = 12'h0;
+    sub0_s2 = 12'h0; sub0_s3 = 12'h0; sub1_s3 = 12'h0;
+    sum_out0 = 13'h0; sum_out1 = 13'h0;
+    diff_out0 = 13'h0; diff_out1 = 13'h0;
+    out0 = 24'h0; out1 = 24'h0;
+    quo0 = 11'h0; quo1 = 11'h0;
+end
+
 always @(*) case(sel0_a0)
 	default : add0_a0 = in0[11:0];
 	1'h 1 : add0_a0 = 12'h 0;

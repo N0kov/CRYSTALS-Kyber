@@ -273,8 +273,11 @@ endcase
 always @(posedge clk) case(state_r3)
 	5'h 2, 5'h 3, 5'h 4 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	5'h 9, 5'h a, 5'h b : tw_butt <= {rdata_ROM1,rdata_ROM1};
-	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1 : rdata_RAM_mux0_r1;
-	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2,rdata_RAM_mux0_r1[23:12]};
+	// Stage 3.c (S3b-1 fix): tw_butt sources from RAM at these states.
+	// Use unmasked path (unmasked_mux*_r1) to avoid bilinear share break
+	// at the multiplication. Single-cycle unmask window discipline.
+	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
 	5'h c, 5'h d : tw_butt <= {k[2],~k[2],10'b0,k[2],~k[2],10'b0};
 	5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : tw_butt <= {rdata_ROM1,rdata_ROM1};
 	5'h 18, 5'h 19 : tw_butt <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
@@ -485,6 +488,30 @@ assign data_acc1_q = data_acc1 - 12'h d01;
 always @(posedge clk) data_mux0 <= data_acc0_q[12] ? data_acc0 : data_acc0_q;
 always @(posedge clk) data_mux1 <= data_acc1_q[12] ? data_acc1 : data_acc1_q;
 
+// =============================================================================
+// Stage 3.d.2 (S3c-5 fix): parallel accumulator for mask share. Mirrors
+// primary's rdata_acc → c_shift_ram_6 → data_acc → data_mux but reads from
+// RAM_m and uses BU_m's outputs. Used at state_r13 == 4'h 7 / 5'h 11 where
+// primary writes {data_mux1, data_mux0} accumulator output.
+// =============================================================================
+reg  [23:0] rdata_acc_m;
+wire [23:0] rdata_acc_r8_m;
+wire [12:0] data_acc0_m, data_acc1_m;
+wire [12:0] data_acc0_q_m, data_acc1_q_m;
+(* DONT_TOUCH = "TRUE" *) reg [11:0] data_mux0_m, data_mux1_m;
+
+always @(*) case(state_r2)
+    5'h 7  : rdata_acc_m = ctr_col_r1 == 2'h 0 ? 24'h 0 : raddr_RAM2_lsb_r1 ? rdata_RAM3_m : rdata_RAM2_m;
+    5'h 11 : rdata_acc_m = ctr_col_r1 == 2'h 0 ? 24'h 0 : raddr_RAM2_lsb_r1 ? rdata_RAM1_m : rdata_RAM0_m;
+    default: rdata_acc_m = raddr_RAM2_lsb_r1 ? rdata_RAM3_m : rdata_RAM2_m;
+endcase
+assign data_acc0_m   = out0_butt_m[23:12] + rdata_acc_r8_m[11:0];
+assign data_acc1_m   = out1_butt_m[23:12] + rdata_acc_r8_m[23:12];
+assign data_acc0_q_m = data_acc0_m - 12'h d01;
+assign data_acc1_q_m = data_acc1_m - 12'h d01;
+always @(posedge clk) data_mux0_m <= data_acc0_q_m[12] ? data_acc0_m : data_acc0_q_m;
+always @(posedge clk) data_mux1_m <= data_acc1_q_m[12] ? data_acc1_m : data_acc1_q_m;
+
 always @(*) case(state)
 	5'h a, 5'h b, 5'h 14, 5'h 15 : req_noise = ~fifo1_empty & ~req_noise_done;
 	default : req_noise = 1'h 0;
@@ -586,8 +613,10 @@ always @(posedge clk) case(state_r3)
     end
     5'h 6, 5'h 10 : begin
         in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-        // Primary loads `din` here; mask path loads constant mask
-        in1_butt_m <= {mask_const, mask_const};
+        // Stage 3.e fix (S3c-6): mirror primary's in1_butt = din directly.
+        // Public data; share invariant carries through butterfly's
+        // non-fully-linear paths (shift-right at sel_a1=0 etc.).
+        in1_butt_m <= din;
     end
     5'h 7, 5'h 11 : begin
         in0_butt_m <= rdata_RAM_mux0_r1_m;
@@ -647,21 +676,43 @@ always @(*) case(state_r2)
     end
 endcase
 
-// Mask-share wdata: mirror primary's wdata_RAM* always block
+// Stage 3.d.1 (S3c-4 fix): mask-share wdata_RAM mirrors PRIMARY case
+// structure exactly. Stage 2 wiring lumped many non-sampling butterfly
+// states into the mask_const branch which broke the share invariant.
+// Primary case branches (NTT_core_Client.v lines 372-399):
+//   5'h 1e, 5'h 1f                   : sampling      → mask_const
+//   4'h 2, 4'h a, 5'h 14, 5'h 16     : out0_butt_r1, out0_butt
+//   4'h 3, 5'h b, 5'h 15, 5'h 17     : out1_butt_r2, out1_butt_r1
+//   4'h 4, 4'h 9, 5'h 13             : out0_butt_r1, out1_butt_r1
+//   4'h 7, 5'h 11                    : data_mux (accumulator)
+//   5'h c, 5'h d, 5'h 18, 5'h 19     : quotient (Stage 3 unmask: write 0)
+//   default                          : out0_butt_r1, out1_butt_r1
 always @(*) case(state_r13)
-    5'h 1e, 5'h 1f, 5'h 2, 5'h 3, 5'h 4, 5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : begin
-        // Sampling write states: mask polynomial coefficients into RAM
+    5'h 1e, 5'h 1f : begin
+        // Sampling: primary writes samp_masked; mask writes mask_const
         wdata_RAM0_m = {mask_const, mask_const};
         wdata_RAM1_m = {mask_const, mask_const};
     end
-    5'h 11 : begin
-        wdata_RAM0_m = {mask_const, mask_const};
-        wdata_RAM1_m = {mask_const, mask_const};
+    4'h 2, 4'h a, 5'h 14, 5'h 16 : begin
+        wdata_RAM0_m = out0_butt_r1_m;
+        wdata_RAM1_m = out0_butt_m;
     end
-    // Stage 3: at quotient-output states 0xc/0xd/0x18/0x19, primary writes
-    // UNMASKED quotient bits. RAM_m at these locations is unused by downstream
-    // operations (output-only), so write 0 to keep RAM_p - RAM_m = unmasked.
+    4'h 3, 5'h b, 5'h 15, 5'h 17 : begin
+        wdata_RAM0_m = out1_butt_r2_m;
+        wdata_RAM1_m = out1_butt_r1_m;
+    end
+    4'h 4, 4'h 9, 5'h 13 : begin
+        wdata_RAM0_m = out0_butt_r1_m;
+        wdata_RAM1_m = out1_butt_r1_m;
+    end
+    4'h 7, 5'h 11 : begin
+        // Stage 3.d.2 (S3c-5): parallel accumulator mask share
+        wdata_RAM0_m = {data_mux1_m, data_mux0_m};
+        wdata_RAM1_m = {data_mux1_m, data_mux0_m};
+    end
     5'h c, 5'h d, 5'h 18, 5'h 19 : begin
+        // Stage 3 quotient unmask: primary writes UNMASKED quotient bits.
+        // RAM_m writes 0 (output-only addresses, share invariant preserved).
         wdata_RAM0_m = 24'h0;
         wdata_RAM1_m = 24'h0;
     end
@@ -724,6 +775,8 @@ c_shift_ram_4 S5(.CLK(clk),.D(raddr_RAM0),.Q(waddr_RAM0));
 c_shift_ram_4 S6(.CLK(clk),.D(raddr_RAM1),.Q(waddr_RAM1));
 c_shift_ram_5 S7(.CLK(clk),.D(raddr_RAM2),.Q(waddr_RAM2));
 c_shift_ram_6 S9(.CLK(clk),.D(rdata_acc),.Q(rdata_acc_r8));
+// Stage 3.d.2 (S3c-5): parallel mask-share accumulator retiming
+(* KEEP_HIERARCHY = "TRUE" *) c_shift_ram_6 S9_m(.CLK(clk),.D(rdata_acc_m),.Q(rdata_acc_r8_m));
 c_shift_ram_8 S10(.CLK(clk),.D(fifo1_req),.Q(fifo1_req_r9));
 c_shift_ram_11 S11(.CLK(clk),.D(req_noise_r2),.Q(req_noise_r12));
 

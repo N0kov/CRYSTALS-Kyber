@@ -342,9 +342,25 @@ endcase
 always @(posedge clk) case(state_r3)
 	6'h 2, 6'h 3, 6'h 4 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	6'h 7, 6'h 8, 6'h 9 : tw_butt <= {rdata_ROM0,rdata_ROM0};
-	6'h b, 6'h 26, 6'h 30 : tw_butt <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1 : rdata_RAM_mux0_r1;
-	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt <= {rdata_ROM2,rdata_RAM_mux0_r1[23:12]};
-	6'h 14, 6'h 15 : tw_butt <= rdata_RAM_mux0_r1;
+	// Stage 3.c (S3b-1 fix): tw_butt at these states sources from RAM,
+	// which holds masked data. With shared tw between BU and BU_m, the
+	// multiply `in1 * tw` becomes bilinear in (in1_share, tw_share) and
+	// breaks the share invariant. Use the existing combinational unmask
+	// (unmasked_mux*_r1) so tw_butt holds the UNMASKED twiddle for one
+	// register-cycle. This exposes the secret on tw_butt for that cycle —
+	// accepted per the original plan's "single-cycle unmask window with
+	// DONT_TOUCH" discipline (extending the discipline from in_butt to tw_butt).
+	// Stage 3.c (S3b-1 fix): tw_butt at these states sources from RAM,
+	// which holds masked data. With shared tw between BU and BU_m, the
+	// multiply `in1 * tw` becomes bilinear in (in1_share, tw_share) and
+	// breaks the share invariant. Use the existing combinational unmask
+	// (unmasked_mux*_r1) so tw_butt holds the UNMASKED twiddle for one
+	// register-cycle. This exposes the secret on tw_butt for that cycle —
+	// accepted per the original plan's "single-cycle unmask window with
+	// DONT_TOUCH" discipline (extending the discipline from in_butt to tw_butt).
+	6'h b, 6'h 26, 6'h 30 : tw_butt <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
+	6'h 14, 6'h 15 : tw_butt <= unmasked_mux0_r1;
 	6'h f, 6'h 10 : tw_butt <= {12'hd01,12'hd01};
 	6'h 11, 6'h 12, 6'h 13 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	6'h 1b, 6'h 1c : tw_butt <= {12'hd01,12'hd01};
@@ -780,6 +796,7 @@ always @(posedge clk) case(state_r13)
 	endcase
 	default : dout <= 24'h 0;
 endcase
+
 always @(posedge clk) case(state_r13)
 	5'h c : valid <= ctr_col_r12 == k_1 ? 1'h 1 : 1'h 0;
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : valid <= 1'h 1;
@@ -822,8 +839,17 @@ always @(posedge clk) case(state_r3)
 	end
 	5'h b, 6'h 26, 6'h 30 : begin
 		in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-		// din load: mask path receives the constant mask in both halves
-		in1_butt_m <= {mask_const, mask_const};
+		// Stage 3.e fix (S3c-6): din carries unmasked public data (A coefficient).
+		// Earlier we set in1_butt_m = 0, but butterfly's output passes through
+		// sum_in1_sr at this state's flag config (flag_mix1=0). With in1_m=0,
+		// the passthrough lane writes 0 to RAM_m, breaking the share for
+		// downstream RAM reads. Fix: feed the SAME public din to in1_butt_m as
+		// in1_butt, so passthrough lane produces matching value (cancels in
+		// BU_p − BU_m diff) and multiply lane produces same product (cancels
+		// too — both shares multiply same A by same shared tw). Net: share
+		// invariant preserved at the BU output. Public A is OK to feed mask
+		// path since A is not secret.
+		in1_butt_m <= din;
 	end
 	5'h c, 6'h 16, 6'h 27, 6'h 31 : begin
 		in0_butt_m <= rdata_RAM_mux0_r1_m;
@@ -833,10 +859,22 @@ always @(posedge clk) case(state_r3)
 		in0_butt_m <= rdata_RAM_mux0_r1_m;
 		in1_butt_m <= rdata_RAM_mux1_r1_m;
 	end
-	5'h f, 5'h 10, 6'h 1b, 6'h 1c : begin
+	5'h f, 5'h 10 : begin
 		in0_butt_m <= 24'h0;
-		// Decompose-load states: mask path receives constant mask
-		in1_butt_m <= {mask_const, mask_const};
+		// Stage 3.e fix (S3c-6): mirror primary's in1_butt slice exactly so
+		// BU_m operates on same public data; share invariant carries through
+		// butterfly's non-fully-linear paths (e.g., shift-right at sel_a1=0).
+		case(k)
+			3'h 2, 3'h 3 : in1_butt_m <= {din[19:10],2'b0,din[9:0]};
+			default : in1_butt_m <= {din[21:11],1'b0,din[10:0]};
+		endcase
+	end
+	6'h 1b, 6'h 1c : begin
+		in0_butt_m <= 24'h0;
+		case(k)
+			3'h 2, 3'h 3 : in1_butt_m <= {din[7:4],8'b0,din[3:0]};
+			default : in1_butt_m <= {din[9:5],7'b0,din[4:0]};
+		endcase
 	end
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
 		in0_butt_m <= rdata_RAM_mux0_r1_m;
@@ -975,7 +1013,12 @@ endcase
 
 // Mask-share RAM2 wdata: parallel to primary's wdata_RAM2.
 always @(*) case(state_r13)
-	6'h 2a, 6'h 2b, 6'h 14, 6'h 15, 6'h 34, 6'h 35 :
+	// Stage 3.c fix (S3b-1 b): only the noise-sampling states write mask_const
+	// to RAM2/4. State 6'h 14/15 is an NTT/INTT step (writes butterfly output
+	// in primary), so RAM2_m must mirror the default {wdata_RAM1_m, wdata_RAM0_m}
+	// to preserve the share invariant. Stage 2 erroneously grouped 6'h 14/15
+	// with the noise-sampling states.
+	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 :
 		wdata_RAM2_m = {mask_const, mask_const, mask_const, mask_const};
 	default :
 		wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
