@@ -896,7 +896,15 @@ always @(posedge clk) begin
 	rdata_RAM_mux1_r2_m <= rdata_RAM_mux1_r1_m;
 end
 
-// Mirror primary's rdata_RAM_mux selection (uses same state_r2)
+// NOTE (S3c-6 partial finding): Stage 2 mask-side mux is MISWIRED at many
+// states relative to primary. e.g., state_r2 == 6'h 7/8/9 primary reads
+// RAM2/RAM3 but mask code reads RAM4_m. Verified via $display: share invariant
+// failed by exactly 0x13 at state_r13 == 5'h 7. CORRECTING this mux to mirror
+// primary exactly (verified pass through diff against NTT_core_Server.v
+// lines 366-431) breaks the mask=0 diagnostic line 1 (was 0223d2 → becomes
+// 8a74d7f4) — suggests the corrected mask-mux interacts with another bug
+// (possibly X-prop from RAM_m at unwritten addresses). Reverted to original
+// Stage 2 wiring; the proper fix requires also addressing the X-prop chain.
 always @(*) case(state_r2)
 	6'h 2, 6'h 3, 6'h 4, 6'h 18, 6'h 19, 6'h 1a : begin
 		rdata_RAM_mux0_m = rdata_RAM0_m;
