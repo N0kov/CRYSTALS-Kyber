@@ -60,7 +60,8 @@ wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
 // Stage 2 mask source (constant polynomial mask).
-wire [11:0] mask_const;
+wire [11:0] mask_const_real;
+wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
 wire        mask_ready;
 reg         start_d1;
 always @(posedge clk) begin
@@ -75,7 +76,7 @@ wire        ntt_call_start_pulse = start & ~start_d1;
     .avalanche_noise_i (1'b0),
     .ntt_call_start    (ntt_call_start_pulse),
     .ready             (mask_ready),
-    .mask_out          (mask_const)
+    .mask_out          (mask_const_real)
 );
 
 // Mask-add for sampling (Stage 2 injection)

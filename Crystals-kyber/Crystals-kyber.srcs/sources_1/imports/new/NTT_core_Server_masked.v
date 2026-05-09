@@ -85,7 +85,8 @@ wire [47:0] rdata_RAM4_m;
 // Stage 2 mask source: latch a single 12-bit mask at start of each NTT call,
 // hold steady for the rest of the call (constant polynomial mask). Stage 3
 // will replace this with per-coefficient mask (256 unique values).
-wire [11:0] mask_const;
+wire [11:0] mask_const_real;
+wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
 wire        mask_ready;
 // Single-cycle ntt_call_start pulse on rising edge of `start`.
 reg         start_d1;
@@ -101,7 +102,7 @@ wire        ntt_call_start_pulse = start & ~start_d1;
     .avalanche_noise_i (1'b0),
     .ntt_call_start    (ntt_call_start_pulse),
     .ready             (mask_ready),
-    .mask_out          (mask_const)
+    .mask_out          (mask_const_real)
 );
 
 reg [7:0] raddr_RAM0;
@@ -635,8 +636,9 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_r1_hi = um_mux0_r1_hi_borrow ? um_mux0_r1_hi_diff + 12'h d01 : um_mux0_r1_hi_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_lo = um_mux1_r1_lo_borrow ? um_mux1_r1_lo_diff + 12'h d01 : um_mux1_r1_lo_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = um_mux1_r1_hi_borrow ? um_mux1_r1_hi_diff + 12'h d01 : um_mux1_r1_hi_diff;
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
+// DBG: bypass unmask formula — directly use rdata_RAM_mux*_r1
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = rdata_RAM_mux0_r1;
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = rdata_RAM_mux1_r1;
 
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
@@ -784,8 +786,18 @@ always @(*) case(state_r13)
 		m_dec = 2'h 0;
 	end
 endcase
+// DBG: capture RAM3[0..7] read values when state == 0x1d/0x1e (m_dec phase)
+integer dbg_r3_cnt;
+initial dbg_r3_cnt = 0;
+always @(posedge clk) begin
+	if ((state == 6'h 1d || state == 6'h 1e) && raddr_RAM1 < 6'h 8 && dbg_r3_cnt < 8) begin
+		$display("[MASKED_RAM3 t=%0t state=%h] raddr=%h rdata=%h", $time, state, raddr_RAM1, rdata_RAM3);
+		dbg_r3_cnt <= dbg_r3_cnt + 1;
+	end
+end
+
 always @(posedge clk) case(state_r13)
-	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0_unmasked : 24'h 0;
+	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0 : 24'h 0;  // DBG: bypass wdata_RAM0_unmasked
 	6'h 2c, 6'h 2d : case(k)
 		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0],quo0_butt_r1[9:0]};
 		default : dout <= {quo1_butt_r1,quo0_butt_r1};
@@ -839,17 +851,8 @@ always @(posedge clk) case(state_r3)
 	end
 	5'h b, 6'h 26, 6'h 30 : begin
 		in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-		// Stage 3.e fix (S3c-6): din carries unmasked public data (A coefficient).
-		// Earlier we set in1_butt_m = 0, but butterfly's output passes through
-		// sum_in1_sr at this state's flag config (flag_mix1=0). With in1_m=0,
-		// the passthrough lane writes 0 to RAM_m, breaking the share for
-		// downstream RAM reads. Fix: feed the SAME public din to in1_butt_m as
-		// in1_butt, so passthrough lane produces matching value (cancels in
-		// BU_p − BU_m diff) and multiply lane produces same product (cancels
-		// too — both shares multiply same A by same shared tw). Net: share
-		// invariant preserved at the BU output. Public A is OK to feed mask
-		// path since A is not secret.
-		in1_butt_m <= din;
+		// DBG: revert Stage 3.e fix — back to in1_butt_m = 0
+		in1_butt_m <= 24'h0;
 	end
 	5'h c, 6'h 16, 6'h 27, 6'h 31 : begin
 		in0_butt_m <= rdata_RAM_mux0_r1_m;

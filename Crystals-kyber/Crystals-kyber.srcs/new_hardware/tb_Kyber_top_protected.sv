@@ -36,7 +36,7 @@ module tb_Kyber_top_protected;
     // DUT
     // -------------------------------------------------------------------------
     Kyber_top_protected #(
-        .COUNTERMEASURE("DUPLICATION"), // change this AND DUT_CM above to switch modes
+        .COUNTERMEASURE("MASKING"), // change this AND DUT_CM above to switch modes
         .USE_TRNG  (0),
         .PRNG_SEED (32'hDEADBEEF)
     ) dut (

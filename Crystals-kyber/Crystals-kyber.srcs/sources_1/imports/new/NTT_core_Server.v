@@ -88,6 +88,16 @@ always @(posedge clk) begin
 	else
 		state <= next_state;
 end
+
+// DBG: capture RAM3[0..7] read values when state == 0x1d/0x1e
+integer dbg_p_r3_cnt;
+initial dbg_p_r3_cnt = 0;
+always @(posedge clk) begin
+	if ((state == 6'h 1d || state == 6'h 1e) && raddr_RAM1 < 6'h 8 && dbg_p_r3_cnt < 8) begin
+		$display("[PRIMARY_RAM3 t=%0t state=%h] raddr=%h rdata=%h", $time, state, raddr_RAM1, rdata_RAM3);
+		dbg_p_r3_cnt <= dbg_p_r3_cnt + 1;
+	end
+end
 always @(*) case(state)
 	4'h 0 : next_state = start | CCA_enc_start ? state + 1'h 1 : state;	
 	4'h 1 : next_state = fifo1_full ? CCA_enc ? 6'h 3e : 6'h 20 : state;
