@@ -36,7 +36,7 @@ module NTT_core_Server_masked(
 reg [5:0] next_state, state;
 reg [5:0] state_r1, state_r2, state_r3;
 wire [5:0] state_r13;
-reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4;
+reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4, state_r13_d5;
 reg wen_RAM2_decomp, wen_RAM3_decomp;
 reg [3:0] ctr_NTT;
 reg [1:0] ctr_col, ctr_col_r1;
@@ -415,9 +415,10 @@ always @(posedge clk) begin
 	rdata_RAM_mux1_r2 <= rdata_RAM_mux1_r1;
 	raddr_ROM_r1 <= raddr_ROM;
 	state_r13_d1 <= state_r13;
-    state_r13_d2 <= state_r13_d1;
-    state_r13_d3 <= state_r13_d2;
-    state_r13_d4 <= state_r13_d3;
+	state_r13_d2 <= state_r13_d1;
+	state_r13_d3 <= state_r13_d2;
+	state_r13_d4 <= state_r13_d3;
+	state_r13_d5 <= state_r13_d4;
 end
 always @(posedge clk) case(state)
 	6'h 2, 6'h 19 : raddr_RAM0 <= {ctr_NTT[1:0],ctr_j} + ctr_k;
@@ -597,19 +598,11 @@ always @(*) case(state_r13)
 endcase
 
 // decomp writeback wen, timed to state+17 to match decomp_butt_r1 validity
-always @(*) case(state_r13_d4)
-    6'h 1b : begin
-        wen_RAM2_decomp = 1'h 1;
-        wen_RAM3_decomp = 1'h 0;
-    end
-    6'h 1c : begin
-        wen_RAM2_decomp = 1'h 0;
-        wen_RAM3_decomp = 1'h 1;
-    end
-    default : begin
-        wen_RAM2_decomp = 1'h 0;
-        wen_RAM3_decomp = 1'h 0;
-    end
+always @(*) case(state_r13_d5)
+    6'h 1b : begin wen_RAM2_decomp = 1'h 1; wen_RAM3_decomp = 1'h 0; end
+    6'h 1c : begin wen_RAM2_decomp = 1'h 0; wen_RAM3_decomp = 1'h 1; end
+    default: begin wen_RAM2_decomp = 1'h 0; wen_RAM3_decomp = 1'h 0; end
+endcase
 endcase
 always @(*) case(state_r13)
 	5'h b, 6'h 14, 6'h 15 : wen_RAM4 = 1'h 1;
