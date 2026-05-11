@@ -36,6 +36,8 @@ module NTT_core_Server_masked(
 reg [5:0] next_state, state;
 reg [5:0] state_r1, state_r2, state_r3;
 wire [5:0] state_r13;
+reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4;
+reg wen_RAM2_decomp, wen_RAM3_decomp;
 reg [3:0] ctr_NTT;
 reg [1:0] ctr_col, ctr_col_r1;
 wire [1:0] ctr_col_r12;
@@ -412,6 +414,10 @@ always @(posedge clk) begin
 	rdata_RAM_mux1_r1 <= rdata_RAM_mux1;
 	rdata_RAM_mux1_r2 <= rdata_RAM_mux1_r1;
 	raddr_ROM_r1 <= raddr_ROM;
+	state_r13_d1 <= state_r13;
+    state_r13_d2 <= state_r13_d1;
+    state_r13_d3 <= state_r13_d2;
+    state_r13_d4 <= state_r13_d3;
 end
 always @(posedge clk) case(state)
 	6'h 2, 6'h 19 : raddr_RAM0 <= {ctr_NTT[1:0],ctr_j} + ctr_k;
@@ -556,38 +562,54 @@ always @(*) case(state_r13)
 	end
 endcase
 always @(*) case(state_r13)
-	6'h 22, 6'h 23 : begin
-		wen_RAM2 = 1'h 1;
-		wen_RAM3 = 1'h 1;		
-	end
-	5'h 7, 5'h 8, 5'h 9 : begin
-		wen_RAM2 = 1'h 1;
-		wen_RAM3 = 1'h 1;
-	end
-	6'h 11, 6'h 12, 6'h 13  : begin
-		wen_RAM2 = 1'h 1;
-		wen_RAM3 = 1'h 1;
-	end
-	6'h c, 6'h 27 : begin
-		wen_RAM2 = ~waddr_RAM2[0];
-		wen_RAM3 = waddr_RAM2[0];
-	end
-	6'h 29, 6'h 2a, 6'h 2b : begin
-		wen_RAM2 = 1'h 1;
-		wen_RAM3 = 1'h 1;
-	end
-	6'h f, 6'h 1b, 6'h 2c : begin
-		wen_RAM2 = 1'h 1;
-		wen_RAM3 = 1'h 0;
-	end
-	6'h 10, 6'h 1c, 6'h 2d : begin
-		wen_RAM2 = 1'h 0;
-		wen_RAM3 = 1'h 1;
-	end
-	default : begin
-		wen_RAM2 = 1'h 0;
-		wen_RAM3 = 1'h 0;
-	end
+    6'h 22, 6'h 23 : begin
+        wen_RAM2 = 1'h 1;
+        wen_RAM3 = 1'h 1;		
+    end
+    5'h 7, 5'h 8, 5'h 9 : begin
+        wen_RAM2 = 1'h 1;
+        wen_RAM3 = 1'h 1;
+    end
+    6'h 11, 6'h 12, 6'h 13 : begin
+        wen_RAM2 = 1'h 1;
+        wen_RAM3 = 1'h 1;
+    end
+    6'h c, 6'h 27 : begin
+        wen_RAM2 = ~waddr_RAM2[0];
+        wen_RAM3 = waddr_RAM2[0];
+    end
+    6'h 29, 6'h 2a, 6'h 2b : begin
+        wen_RAM2 = 1'h 1;
+        wen_RAM3 = 1'h 1;
+    end
+    6'h f, 6'h 2c : begin
+        wen_RAM2 = 1'h 1;
+        wen_RAM3 = 1'h 0;
+    end
+    6'h 10, 6'h 2d : begin
+        wen_RAM2 = 1'h 0;
+        wen_RAM3 = 1'h 1;
+    end
+    default : begin
+        wen_RAM2 = 1'h 0;
+        wen_RAM3 = 1'h 0;
+    end
+endcase
+
+// decomp writeback wen, timed to state+17 to match decomp_butt_r1 validity
+always @(*) case(state_r13_d4)
+    6'h 1b : begin
+        wen_RAM2_decomp = 1'h 1;
+        wen_RAM3_decomp = 1'h 0;
+    end
+    6'h 1c : begin
+        wen_RAM2_decomp = 1'h 0;
+        wen_RAM3_decomp = 1'h 1;
+    end
+    default : begin
+        wen_RAM2_decomp = 1'h 0;
+        wen_RAM3_decomp = 1'h 0;
+    end
 endcase
 always @(*) case(state_r13)
 	5'h b, 6'h 14, 6'h 15 : wen_RAM4 = 1'h 1;
@@ -1045,8 +1067,8 @@ dist_mem_gen_6 ROM1(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM1));
 dist_mem_gen_7 ROM2(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM2));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM0(.clka(clk),.wea(wen_RAM0),.addra(waddr_RAM0),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM0));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM1(.clka(clk),.wea(wen_RAM1),.addra(waddr_RAM0),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM1));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2(.clka(clk),.wea(wen_RAM2),.addra(waddr_RAM1),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3(.clka(clk),.wea(wen_RAM3),.addra(waddr_RAM1),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2(.clka(clk),.wea(wen_RAM2 | wen_RAM2_decomp),.addra(waddr_RAM1),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3(.clka(clk),.wea(wen_RAM3 | wen_RAM3_decomp),.addra(waddr_RAM1),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_1 RAM4(.clka(clk),.wea(wen_RAM4),.addra(waddr_RAM2),.dina(wdata_RAM2),.clkb(clk),.addrb(raddr_RAM2),.doutb(rdata_RAM4));
 
 // =============================================================================
@@ -1067,8 +1089,8 @@ dist_mem_gen_7 ROM2(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM2));
 (* DONT_TOUCH = "TRUE" *) butterfly_Ser BU_m(.clk(clk),.in0(in0_butt_m),.in1(in1_butt_m),.tw(tw_butt),.k(k),.m_bits(m_bits),.flag_uv(ctrl_butt[10]),.flag_mix1(ctrl_butt[9]),.flag_mix0(ctrl_butt[8]),.flag_m(ctrl_butt[7]),.flag_sub1(ctrl_butt[6]),.flag_sub0(ctrl_butt[5]),.flag_add(ctrl_butt[4]),.sel_a1(ctrl_butt[3]),.sel_s0(ctrl_butt[2]),.sel1_a0(ctrl_butt[1]),.sel0_a0(ctrl_butt[0]),.out0(out0_butt_m),.out1(out1_butt_m),.quo0(quo0_butt_m),.quo1(quo1_butt_m),.decomp0(decomp0_butt_m),.decomp1(decomp1_butt_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM0_m(.clka(clk),.wea(wen_RAM0),.addra(waddr_RAM0),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM0_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM1_m(.clka(clk),.wea(wen_RAM1),.addra(waddr_RAM0),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM1_m));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2_m(.clka(clk),.wea(wen_RAM2),.addra(waddr_RAM1),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2_m));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3_m(.clka(clk),.wea(wen_RAM3),.addra(waddr_RAM1),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3_m));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2_m(.clka(clk),.wea(wen_RAM2 | wen_RAM2_decomp),.addra(waddr_RAM1),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2_m));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3_m(.clka(clk),.wea(wen_RAM3 | wen_RAM3_decomp),.addra(waddr_RAM1),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_1 RAM4_m(.clka(clk),.wea(wen_RAM4),.addra(waddr_RAM2),.dina(wdata_RAM2_m),.clkb(clk),.addrb(raddr_RAM2),.doutb(rdata_RAM4_m));
 mux4to2 m00(.a(din[ 0]),.b(din[ 0]),.c(din[ 2]),.d(din[ 3]),.sel({req_noise_r12,din[24]}),.z(b0[1:0]));
 mux4to2 m01(.a(din[ 1]),.b(din[ 1]),.c(din[ 3]),.d(din[ 4]),.sel({req_noise_r12,din[24]}),.z(b0[3:2]));
