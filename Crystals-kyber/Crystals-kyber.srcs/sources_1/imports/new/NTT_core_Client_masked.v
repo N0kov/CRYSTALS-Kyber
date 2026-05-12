@@ -46,9 +46,10 @@ wire [10:0] quo0_butt, quo1_butt;
 reg [10:0] quo0_butt_r1, quo1_butt_r1;
 reg [9:0] ctrl_butt;
 
-// Mask-share signals. Stage 2: mask is real (constant polynomial mask from
-// mask_polyfifo). BU_m runs on mask values, retiming registers mirror primary.
-(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m;
+// Mask-share signals. Proposal B: BU_m gets its own tw_butt_m register so
+// that for multiply states where tw sources from RAM, BU sees the primary
+// share s_p and BU_m sees the mask share s_m. ROM-sourced tw is shared.
+(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m, tw_butt_m;
 wire [23:0] out0_butt_m, out1_butt_m;
 (* DONT_TOUCH = "TRUE" *) reg [23:0] out0_butt_r1_m, out1_butt_r1_m, out1_butt_r2_m;
 wire [10:0] quo0_butt_m, quo1_butt_m;
@@ -59,9 +60,8 @@ wire [10:0] quo0_butt_m, quo1_butt_m;
 wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
-// Stage 2 mask source (constant polynomial mask).
-wire [11:0] mask_const_real;
-wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
+// Real CSPRNG-driven constant polynomial mask (from mask_polyfifo).
+wire [11:0] mask_const;
 wire        mask_ready;
 reg         start_d1;
 always @(posedge clk) begin
@@ -76,7 +76,7 @@ wire        ntt_call_start_pulse = start & ~start_d1;
     .avalanche_noise_i (1'b0),
     .ntt_call_start    (ntt_call_start_pulse),
     .ready             (mask_ready),
-    .mask_out          (mask_const_real)
+    .mask_out          (mask_const)
 );
 
 // Mask-add for sampling (Stage 2 injection)
@@ -102,6 +102,8 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_r1_hi = (um_mux0_r1_hi_t >= 13'h d01) ? um_mux0_r1_hi_t[11:0] - 12'h d01 : um_mux0_r1_hi_t[11:0];
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_lo = (um_mux1_r1_lo_t >= 13'h d01) ? um_mux1_r1_lo_t[11:0] - 12'h d01 : um_mux1_r1_lo_t[11:0];
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = (um_mux1_r1_hi_t >= 13'h d01) ? um_mux1_r1_hi_t[11:0] - 12'h d01 : um_mux1_r1_hi_t[11:0];
+// Restored: full subtract formula (s_p − s_m) mod Q via + Q form. Used at
+// m_dec/quotient states where butterfly primary path needs unmasked data.
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
 
@@ -271,18 +273,32 @@ always @(posedge clk) case(state_r3)
 		in1_butt <= rdata_RAM_mux1_r1;
 	end
 endcase
+// Proposal B: tw_butt holds primary share s_p at multiply states from RAM.
+// Stage 3.c reverted (no more single-cycle unmask window on tw_butt).
 always @(posedge clk) case(state_r3)
 	5'h 2, 5'h 3, 5'h 4 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	5'h 9, 5'h a, 5'h b : tw_butt <= {rdata_ROM1,rdata_ROM1};
-	// Stage 3.c (S3b-1 fix): tw_butt sources from RAM at these states.
-	// Use unmasked path (unmasked_mux*_r1) to avoid bilinear share break
-	// at the multiplication. Single-cycle unmask window discipline.
-	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
-	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
+	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1 : rdata_RAM_mux0_r1;
+	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2, rdata_RAM_mux0_r1[23:12]};
 	5'h c, 5'h d : tw_butt <= {k[2],~k[2],10'b0,k[2],~k[2],10'b0};
 	5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : tw_butt <= {rdata_ROM1,rdata_ROM1};
 	5'h 18, 5'h 19 : tw_butt <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
 	default : tw_butt <= {rdata_ROM1,rdata_ROM1};
+endcase
+
+// Proposal B (new): tw_butt_m mirrors tw_butt but routes the mask share s_m
+// (rdata_RAM_mux*_r1_m) at the multiply states. ROM-sourced and constant
+// tw values are identical between BU and BU_m (public).
+always @(posedge clk) case(state_r3)
+	5'h 2, 5'h 3, 5'h 4 : tw_butt_m <= {rdata_ROM0,rdata_ROM0};
+	5'h 9, 5'h a, 5'h b : tw_butt_m <= {rdata_ROM1,rdata_ROM1};
+	5'h 6, 5'h 10 : tw_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
+	// state 5'h 7/11: BU_m sees same unmasked tw as BU (single-cycle leak).
+	5'h 7, 5'h 11 : tw_butt_m <= {rdata_ROM2, rdata_RAM_mux0_r1_m[23:12]};
+	5'h c, 5'h d : tw_butt_m <= {k[2],~k[2],10'b0,k[2],~k[2],10'b0};
+	5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : tw_butt_m <= {rdata_ROM1,rdata_ROM1};
+	5'h 18, 5'h 19 : tw_butt_m <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
+	default : tw_butt_m <= {rdata_ROM1,rdata_ROM1};
 endcase
 
 assign samp0 = b0[0]-b0[1]+b0[2]-b0[3]+b0[4]-b0[5];
@@ -614,9 +630,8 @@ always @(posedge clk) case(state_r3)
     end
     5'h 6, 5'h 10 : begin
         in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-        // Stage 3.e fix (S3c-6): mirror primary's in1_butt = din directly.
-        // Public data; share invariant carries through butterfly's
-        // non-fully-linear paths (shift-right at sel_a1=0 etc.).
+        // Proposal B: feed public din to BU_m. With tw_butt_m carrying s_m,
+        // BU_m computes A·s_m and BU_p − BU_m = A·s. Share invariant preserved.
         in1_butt_m <= din;
     end
     5'h 7, 5'h 11 : begin
@@ -742,7 +757,7 @@ endcase
 // output. DONT_TOUCH and KEEP_HIERARCHY prevent synthesis from optimizing
 // the mask path away or merging with primary.
 // =============================================================================
-(* DONT_TOUCH = "TRUE" *) butterfly_Cli BU_m(.clk(clk),.in0(in0_butt_m),.in1(in1_butt_m),.tw(tw_butt),.m_bits(m_bits),.flag_mix1(ctrl_butt[9]),.flag_mix0(ctrl_butt[8]),.flag_m(ctrl_butt[7]),.flag_sub1(ctrl_butt[6]),.flag_sub0(ctrl_butt[5]),.flag_add(ctrl_butt[4]),.sel_a1(ctrl_butt[3]),.sel_s0(ctrl_butt[2]),.sel1_a0(ctrl_butt[1]),.sel0_a0(ctrl_butt[0]),.out0(out0_butt_m),.out1(out1_butt_m),.quo0(quo0_butt_m),.quo1(quo1_butt_m));
+(* DONT_TOUCH = "TRUE" *) butterfly_Cli BU_m(.clk(clk),.in0(in0_butt_m),.in1(in1_butt_m),.tw(tw_butt_m),.m_bits(m_bits),.flag_mix1(ctrl_butt[9]),.flag_mix0(ctrl_butt[8]),.flag_m(ctrl_butt[7]),.flag_sub1(ctrl_butt[6]),.flag_sub0(ctrl_butt[5]),.flag_add(ctrl_butt[4]),.sel_a1(ctrl_butt[3]),.sel_s0(ctrl_butt[2]),.sel1_a0(ctrl_butt[1]),.sel0_a0(ctrl_butt[0]),.out0(out0_butt_m),.out1(out1_butt_m),.quo0(quo0_butt_m),.quo1(quo1_butt_m));
 dist_mem_gen_5 ROM0(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM0));
 dist_mem_gen_6 ROM1(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM1));
 dist_mem_gen_7 ROM2(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM2));

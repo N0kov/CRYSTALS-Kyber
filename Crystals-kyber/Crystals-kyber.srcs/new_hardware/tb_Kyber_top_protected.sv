@@ -19,7 +19,7 @@ module tb_Kyber_top_protected;
     // Switch this to "DUPLICATION", "MASKING", or "NONE" together with
     // the DUT instantiation parameter. Generate-blocks below use this
     // to pick the correct internal hierarchy references for each mode.
-    localparam DUT_CM = "DUPLICATION";
+    localparam DUT_CM = "MASKING";
 
     // 100 MHz base clock (10 ns period)
     localparam CLK_HALF     = 5;        // ns
