@@ -729,8 +729,8 @@ assign data_acc0_m = out0_butt_m[23:12] + rdata_acc_r8_m[11:0];
 assign data_acc1_m = out1_butt_m[23:12] + rdata_acc_r8_m[23:12];
 assign data_acc0_q_m = data_acc0_m - 12'h d01;
 assign data_acc1_q_m = data_acc1_m - 12'h d01;
-always @(posedge clk) data_mux0_m <= data_acc0_q_m[12] ? data_acc0_m : data_acc0_q_m;
-always @(posedge clk) data_mux1_m <= data_acc1_q_m[12] ? data_acc1_m : data_acc1_q_m;
+always @(posedge clk) data_mux0_m <= data_acc0_q[12] ? data_acc0_m : data_acc0_q_m;
+always @(posedge clk) data_mux1_m <= data_acc1_q[12] ? data_acc1_m : data_acc1_q_m;
 
 // =============================================================================
 // Stage 3.b: dout polynomial-coeff unmask at state_r13 == 5'h c.
@@ -924,62 +924,70 @@ end
 // (possibly X-prop from RAM_m at unwritten addresses). Reverted to original
 // Stage 2 wiring; the proper fix requires also addressing the X-prop chain.
 always @(*) case(state_r2)
-	6'h 2, 6'h 3, 6'h 4, 6'h 18, 6'h 19, 6'h 1a : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h 9, 6'h a, 6'h b, 6'h 29, 6'h 2a, 6'h 2b : begin
-		rdata_RAM_mux0_m = rdata_RAM2_m;
-		rdata_RAM_mux1_m = rdata_RAM3_m;
-	end
-	6'h 13, 6'h 14, 6'h 15, 6'h 16, 6'h 17, 6'h 33, 6'h 34, 6'h 35, 6'h 36, 6'h 37 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h 7, 6'h 11, 6'h 27, 6'h 31 : begin
-		rdata_RAM_mux0_m = rdata_RAM4_m[23:0];
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 6, 6'h 10, 6'h 26, 6'h 30 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h c : begin
-		rdata_RAM_mux0_m = rdata_RAM2_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 1d : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 1e : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 16 : begin
-		rdata_RAM_mux0_m = rdata_RAM3_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 2c : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 2d : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 38 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 39 : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	default : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
+    6'h 2, 6'h 3, 6'h 4, 6'h 18, 6'h 19, 6'h 1a : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 7, 6'h 8, 6'h 9 : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 11, 6'h 12, 6'h 13 : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 14 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM2_m;
+    end
+    6'h 15 : begin
+        rdata_RAM_mux0_m = rdata_RAM1_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h b, 6'h 26, 6'h 30 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h c, 6'h 16, 6'h 27, 6'h 31 : begin
+        rdata_RAM_mux0_m = rdata_RAM4_m[23:0];
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    6'h 1d : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM0_m;
+    end
+    6'h 1e : begin
+        rdata_RAM_mux0_m = rdata_RAM3_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 29, 6'h 2a, 6'h 2b : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 33, 6'h 34, 6'h 35, 6'h 36, 6'h 37 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 2c : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
+    end
+    6'h 2d : begin
+        rdata_RAM_mux0_m = rdata_RAM3_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    6'h 38 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
+    end
+    6'h 39 : begin
+        rdata_RAM_mux0_m = rdata_RAM1_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    default : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
 endcase
 
 // Mask-share wdata: mirror primary's wdata_RAM* always block. At sampling
