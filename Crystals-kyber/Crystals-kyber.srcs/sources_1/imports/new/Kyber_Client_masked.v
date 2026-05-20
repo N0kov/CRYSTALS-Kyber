@@ -514,4 +514,26 @@ fifo_generator_2 IFIFO(.clk(clk),.srst(rst),.din(din),.wr_en(wen),.rd_en(decode_
 fifo_generator_3 OFIFO(.clk(clk),.srst(rst),.din(OFIFO_din),.wr_en(OFIFO_wen),.rd_en(req_c),.dout(OFIFO_dout),.full(OFIFO_full),.empty(OFIFO_empty));
 fifo_generator_6 DFIFO(.clk(clk),.srst(rst),.din(DFIFO_din),.wr_en(DFIFO_wen),.rd_en(req_D),.dout(DFIFO_dout),.full(DFIFO_full),.empty(DFIFO_empty));
 
+integer kc_ntt_cnt = 0;
+integer kc_enc_cnt = 0;
+integer kc_ru_ev   = 0;
+reg ready_u_prev = 1'b0;
+always @(posedge clk) begin
+    if (NTT_valid) begin
+        kc_ntt_cnt <= kc_ntt_cnt + 1;
+        if (kc_ntt_cnt < 5 || kc_ntt_cnt % 100 == 0)
+            $display("[KC_NTT t=%0t #%0d] NTT_dout=%h ready_u=%b state=%h", $time, kc_ntt_cnt, NTT_dout, ready_u, state);
+    end
+    if (encode_valid) begin
+        kc_enc_cnt <= kc_enc_cnt + 1;
+        if (kc_enc_cnt < 5 || kc_enc_cnt % 50 == 0)
+            $display("[KC_ENC t=%0t #%0d] encode_dout=%h NTT_dout=%h NTT_valid=%b ready_u=%b state=%h", $time, kc_enc_cnt, encode_dout, NTT_dout, NTT_valid, ready_u, state);
+    end
+    if (ready_u != ready_u_prev) begin
+        $display("[KC_RU t=%0t #%0d] ready_u: %b -> %b  state=%h kc_ntt_cnt=%0d kc_enc_cnt=%0d", $time, kc_ru_ev, ready_u_prev, ready_u, state, kc_ntt_cnt, kc_enc_cnt);
+        kc_ru_ev <= kc_ru_ev + 1;
+    end
+    ready_u_prev <= ready_u;
+end
+
 endmodule

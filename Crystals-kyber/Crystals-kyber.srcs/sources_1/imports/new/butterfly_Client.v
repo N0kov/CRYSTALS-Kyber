@@ -232,13 +232,6 @@ reduc R1(.clk(clk),.c(prod1),.d(red1),.q(q1));
 // External latency from in0/in1 to sum_inX_sr is unchanged.
 reg [11:0] sum_in0_sr_d [0:3];
 reg [11:0] sum_in1_sr_d [0:3];
-// Initialize inline replacement registers to match c_shift_ram_v12 power-up.
-initial begin
-    sum_in0_sr_d[0] = 12'h0; sum_in0_sr_d[1] = 12'h0;
-    sum_in0_sr_d[2] = 12'h0; sum_in0_sr_d[3] = 12'h0;
-    sum_in1_sr_d[0] = 12'h0; sum_in1_sr_d[1] = 12'h0;
-    sum_in1_sr_d[2] = 12'h0; sum_in1_sr_d[3] = 12'h0;
-end
 always @(posedge clk) begin
 	sum_in0_sr_d[0] <= sum_in0_reg;
 	sum_in0_sr_d[1] <= sum_in0_sr_d[0];

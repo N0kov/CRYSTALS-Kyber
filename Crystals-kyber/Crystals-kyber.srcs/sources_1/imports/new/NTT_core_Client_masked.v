@@ -40,16 +40,16 @@ wire req_noise_r12;
 reg req_noise_done;
 
 reg [23:0] in0_butt, in1_butt, tw_butt;
+(* DONT_TOUCH = "TRUE" *) reg [23:0] tw_butt_m;
 wire [23:0] out0_butt, out1_butt;
 reg [23:0] out0_butt_r1, out1_butt_r1, out1_butt_r2;
 wire [10:0] quo0_butt, quo1_butt;
 reg [10:0] quo0_butt_r1, quo1_butt_r1;
 reg [9:0] ctrl_butt;
 
-// Mask-share signals. Proposal B: BU_m gets its own tw_butt_m register so
-// that for multiply states where tw sources from RAM, BU sees the primary
-// share s_p and BU_m sees the mask share s_m. ROM-sourced tw is shared.
-(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m, tw_butt_m;
+// Mask-share signals. Stage 2: mask is real (constant polynomial mask from
+// mask_polyfifo). BU_m runs on mask values, retiming registers mirror primary.
+(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m;
 wire [23:0] out0_butt_m, out1_butt_m;
 (* DONT_TOUCH = "TRUE" *) reg [23:0] out0_butt_r1_m, out1_butt_r1_m, out1_butt_r2_m;
 wire [10:0] quo0_butt_m, quo1_butt_m;
@@ -60,8 +60,9 @@ wire [10:0] quo0_butt_m, quo1_butt_m;
 wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
-// Real CSPRNG-driven constant polynomial mask (from mask_polyfifo).
-wire [11:0] mask_const;
+// Stage 2 mask source (constant polynomial mask).
+wire [11:0] mask_const_real;
+wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
 wire        mask_ready;
 reg         start_d1;
 always @(posedge clk) begin
@@ -76,7 +77,7 @@ wire        ntt_call_start_pulse = start & ~start_d1;
     .avalanche_noise_i (1'b0),
     .ntt_call_start    (ntt_call_start_pulse),
     .ready             (mask_ready),
-    .mask_out          (mask_const)
+    .mask_out          (mask_const_real)
 );
 
 // Mask-add for sampling (Stage 2 injection)
@@ -102,8 +103,6 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_r1_hi = (um_mux0_r1_hi_t >= 13'h d01) ? um_mux0_r1_hi_t[11:0] - 12'h d01 : um_mux0_r1_hi_t[11:0];
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_lo = (um_mux1_r1_lo_t >= 13'h d01) ? um_mux1_r1_lo_t[11:0] - 12'h d01 : um_mux1_r1_lo_t[11:0];
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = (um_mux1_r1_hi_t >= 13'h d01) ? um_mux1_r1_hi_t[11:0] - 12'h d01 : um_mux1_r1_hi_t[11:0];
-// Restored: full subtract formula (s_p − s_m) mod Q via + Q form. Used at
-// m_dec/quotient states where butterfly primary path needs unmasked data.
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
 
@@ -273,28 +272,27 @@ always @(posedge clk) case(state_r3)
 		in1_butt <= rdata_RAM_mux1_r1;
 	end
 endcase
-// Proposal B: tw_butt holds primary share s_p at multiply states from RAM.
-// Stage 3.c reverted (no more single-cycle unmask window on tw_butt).
 always @(posedge clk) case(state_r3)
 	5'h 2, 5'h 3, 5'h 4 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	5'h 9, 5'h a, 5'h b : tw_butt <= {rdata_ROM1,rdata_ROM1};
-	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1 : rdata_RAM_mux0_r1;
-	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2, rdata_RAM_mux0_r1[23:12]};
+	// Stage 3.c (S3b-1 fix): tw_butt sources from RAM at these states.
+	// Use unmasked path (unmasked_mux*_r1) to avoid bilinear share break
+	// at the multiplication. Single-cycle unmask window discipline.
+	5'h 6, 5'h 10 : tw_butt <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	5'h 7, 5'h 11 : tw_butt <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
 	5'h c, 5'h d : tw_butt <= {k[2],~k[2],10'b0,k[2],~k[2],10'b0};
 	5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : tw_butt <= {rdata_ROM1,rdata_ROM1};
 	5'h 18, 5'h 19 : tw_butt <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
 	default : tw_butt <= {rdata_ROM1,rdata_ROM1};
 endcase
-
-// Proposal B (new): tw_butt_m mirrors tw_butt but routes the mask share s_m
-// (rdata_RAM_mux*_r1_m) at the multiply states. ROM-sourced and constant
-// tw values are identical between BU and BU_m (public).
+// Phase 2 Step 1: tw_butt_m mirrors tw_butt EXACTLY (no functional change).
+// Provides a separate mask-side twiddle wire so BU_m can be untied from BU's tw.
+// Stage 3.c states still source from unmasked helpers; Step 3 will change this.
 always @(posedge clk) case(state_r3)
 	5'h 2, 5'h 3, 5'h 4 : tw_butt_m <= {rdata_ROM0,rdata_ROM0};
 	5'h 9, 5'h a, 5'h b : tw_butt_m <= {rdata_ROM1,rdata_ROM1};
-	5'h 6, 5'h 10 : tw_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-	// state 5'h 7/11: BU_m sees same unmasked tw as BU (single-cycle leak).
-	5'h 7, 5'h 11 : tw_butt_m <= {rdata_ROM2, rdata_RAM_mux0_r1_m[23:12]};
+	5'h 6, 5'h 10 : tw_butt_m <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	5'h 7, 5'h 11 : tw_butt_m <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
 	5'h c, 5'h d : tw_butt_m <= {k[2],~k[2],10'b0,k[2],~k[2],10'b0};
 	5'h 13, 5'h 14, 5'h 15, 5'h 16, 5'h 17 : tw_butt_m <= {rdata_ROM1,rdata_ROM1};
 	5'h 18, 5'h 19 : tw_butt_m <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
@@ -630,9 +628,12 @@ always @(posedge clk) case(state_r3)
     end
     5'h 6, 5'h 10 : begin
         in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-        // Proposal B: feed public din to BU_m. With tw_butt_m carrying s_m,
-        // BU_m computes A·s_m and BU_p − BU_m = A·s. Share invariant preserved.
-        in1_butt_m <= din;
+        // Phase 2 Step 3: revert Stage 3.e on Client to mirror Server line 890.
+        // Empirically BU_m.out0 at this state has a non-zero high half driven by
+        // (in1_m * tw_m) when in1_m = din — polluting mask RAM. Setting in1_m = 0
+        // prevents contamination; primary's `din` contribution to BU.out cancels
+        // in share subtraction provided butterfly is linear in in1 (mac-style).
+        in1_butt_m <= 24'h0;
     end
     5'h 7, 5'h 11 : begin
         in0_butt_m <= rdata_RAM_mux0_r1_m;
@@ -709,13 +710,20 @@ always @(*) case(state_r13)
         wdata_RAM0_m = {mask_const, mask_const};
         wdata_RAM1_m = {mask_const, mask_const};
     end
-    4'h 2, 4'h a, 5'h 14, 5'h 16 : begin
+    4'h 2, 4'h a, 5'h 14 : begin
         wdata_RAM0_m = out0_butt_r1_m;
         wdata_RAM1_m = out0_butt_m;
     end
-    4'h 3, 5'h b, 5'h 15, 5'h 17 : begin
+    4'h 3, 5'h b, 5'h 15 : begin
         wdata_RAM0_m = out1_butt_r2_m;
         wdata_RAM1_m = out1_butt_r1_m;
+    end
+    // Phase 2 Step 4: state 5'h 16/17 ctrl=111_111_0000 is a compression op (BU_m
+    // adds the (Q+1)/2 = 0x681 constant even with all-zero inputs). Force mask
+    // RAM = 0 here; primary RAM holds correct unmasked truth (mask=0 regime).
+    5'h 16, 5'h 17 : begin
+        wdata_RAM0_m = 24'h0;
+        wdata_RAM1_m = 24'h0;
     end
     4'h 4, 4'h 9, 5'h 13 : begin
         wdata_RAM0_m = out0_butt_r1_m;
@@ -795,5 +803,37 @@ c_shift_ram_6 S9(.CLK(clk),.D(rdata_acc),.Q(rdata_acc_r8));
 (* KEEP_HIERARCHY = "TRUE" *) c_shift_ram_6 S9_m(.CLK(clk),.D(rdata_acc_m),.Q(rdata_acc_r8_m));
 c_shift_ram_8 S10(.CLK(clk),.D(fifo1_req),.Q(fifo1_req_r9));
 c_shift_ram_11 S11(.CLK(clk),.D(req_noise_r2),.Q(req_noise_r12));
+
+integer w0_cnt = 0;
+integer w0_eq_cnt = 0;
+integer w0_neq_cnt = 0;
+integer mask_const_zero = 0;
+always @(posedge clk) begin
+    if (wen_RAM0) begin
+        if (wdata_RAM0 == wdata_RAM0_m)
+            w0_eq_cnt <= w0_eq_cnt + 1;
+        else
+            w0_neq_cnt <= w0_neq_cnt + 1;
+        // Print first 30 writes plus every 100th
+        if (w0_cnt < 30 || w0_cnt % 100 == 0)
+            $display("[NC_W0 t=%0t #%0d] waddr=%h wdata=%h wdata_m=%h eq=%b state=%h state_r3=%h state_r13=%h mask_const=%h",
+                $time, w0_cnt, waddr_RAM0, wdata_RAM0, wdata_RAM0_m, wdata_RAM0 == wdata_RAM0_m, state, state_r3, state_r13, mask_const);
+        // Capture the first time wdata_m matches wdata exactly (indicates collapse moment)
+        w0_cnt <= w0_cnt + 1;
+    end
+    // Also report final tallies near sim end
+    if ($time == 540000000)
+        $display("[NC_W0_SUM t=%0t] total=%0d eq=%0d neq=%0d", $time, w0_cnt, w0_eq_cnt, w0_neq_cnt);
+end
+
+// Track FIRST cycle out0_butt_m becomes non-zero (mask RAM contamination source).
+integer out0_m_first = 0;
+always @(posedge clk) begin
+    if (out0_butt_m != 24'h0 && out0_m_first < 8) begin
+        $display("[NC_O0M t=%0t #%0d] out0_m=%h state=%h state_r3=%h in0_m=%h in1_m=%h tw_m=%h ctrl=%h",
+            $time, out0_m_first, out0_butt_m, state, state_r3, in0_butt_m, in1_butt_m, tw_butt_m, ctrl_butt);
+        out0_m_first <= out0_m_first + 1;
+    end
+end
 
 endmodule

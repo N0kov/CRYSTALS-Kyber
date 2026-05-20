@@ -641,6 +641,91 @@ NTT_core_Server_masked ntt(
 .valid(NTT_valid),
 .dout(NTT_dout)
 );
+
+// DIVERGENCE COMPARATOR: shadow unmasked NTT wired with same inputs.
+// All outputs go to _shadow signals (dead-ended). xsim will run both in
+// parallel; we compare internal wdata_RAM via hierarchical references in the
+// always block below.
+wire        shadow_fifo0_req, shadow_fifo1_req_r9;
+wire        shadow_req_D0, shadow_req_D1;
+wire        shadow_ena_sft, shadow_ready_t;
+wire        shadow_m_ena;
+wire [1:0]  shadow_m_dec;
+wire        shadow_valid, shadow_finish;
+wire [23:0] shadow_dout;
+NTT_core_Server ntt_shadow(
+.clk(clk),
+.rst(rst),
+.start(start),
+.k(k),
+.CCA_enc(CCA_enc),
+.CCA_enc_start(CCA_enc_start),
+.ready_c(ready_c),
+.ready_t(shadow_ready_t),
+.fifo0_empty(ofifo0_empty),
+.fifo1_empty(ofifo1_empty),
+.fifo1_full(ofifo1_full),
+.DFIFO0_full_eff(DFIFO0_full_eff),
+.fifo0_req(shadow_fifo0_req),
+.fifo1_req_r9(shadow_fifo1_req_r9),
+.ena_sft(shadow_ena_sft),
+.m_bits({m[129:128],m[1:0]}),
+.req_D0(shadow_req_D0),
+.req_D1(shadow_req_D1),
+.din(NTT_din),
+.m_ena(shadow_m_ena),
+.m_dec(shadow_m_dec),
+.finish(shadow_finish),
+.valid(shadow_valid),
+.dout(shadow_dout)
+);
+
+// Compare every wen_RAM0 / wen_RAM1 cycle. The two NTTs have identical FSM
+// (same module structure), so wen_RAM* should fire on the same cycles. wdata
+// should match cycle-by-cycle when mask=0 reduces masked to unmasked.
+integer cmp_w0_cnt = 0;
+integer cmp_w0_diff = 0;
+integer cmp_w1_diff = 0;
+integer cmp_w2_diff = 0;
+integer cmp_m_dec_diff = 0;
+always @(posedge clk) begin
+    if (ntt.wen_RAM0 !== ntt_shadow.wen_RAM0) begin
+        if (cmp_w0_cnt < 5)
+            $display("[CMP_WEN0_MISMATCH t=%0t] masked.wen=%b shadow.wen=%b masked.state=%h shadow.state=%h",
+                $time, ntt.wen_RAM0, ntt_shadow.wen_RAM0, ntt.state, ntt_shadow.state);
+        cmp_w0_cnt <= cmp_w0_cnt + 1;
+    end
+    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && ntt.wdata_RAM0 !== ntt_shadow.wdata_RAM0) begin
+        if (cmp_w0_diff < 8)
+            $display("[CMP_WDATA0_DIFF t=%0t] masked.waddr=%h masked=%h shadow.waddr=%h shadow=%h state=%h state_r3=%h state_r13=%h",
+                $time, ntt.waddr_RAM0, ntt.wdata_RAM0, ntt_shadow.waddr_RAM0, ntt_shadow.wdata_RAM0, ntt.state, ntt.state_r3, ntt.state_r13);
+        cmp_w0_diff <= cmp_w0_diff + 1;
+    end
+    if (ntt.wen_RAM1 && ntt_shadow.wen_RAM1 && ntt.wdata_RAM1 !== ntt_shadow.wdata_RAM1) begin
+        if (cmp_w1_diff < 8)
+            $display("[CMP_WDATA1_DIFF t=%0t] masked.waddr=%h masked=%h shadow.waddr=%h shadow=%h state=%h state_r3=%h state_r13=%h",
+                $time, ntt.waddr_RAM0, ntt.wdata_RAM1, ntt_shadow.waddr_RAM0, ntt_shadow.wdata_RAM1, ntt.state, ntt.state_r3, ntt.state_r13);
+        cmp_w1_diff <= cmp_w1_diff + 1;
+    end
+    if ((ntt.wen_RAM2 || ntt.wen_RAM3) && ntt.wdata_RAM0 !== ntt_shadow.wdata_RAM0) begin
+        if (cmp_w2_diff < 8)
+            $display("[CMP_W23_DIFF t=%0t] waddr=%h masked.wdata0=%h shadow.wdata0=%h wen_R2=%b wen_R3=%b state=%h state_r13=%h",
+                $time, ntt.waddr_RAM1, ntt.wdata_RAM0, ntt_shadow.wdata_RAM0, ntt.wen_RAM2, ntt.wen_RAM3, ntt.state, ntt.state_r13);
+        cmp_w2_diff <= cmp_w2_diff + 1;
+    end
+    if (ntt.m_ena && ntt.m_dec !== ntt_shadow.m_dec) begin
+        if (cmp_m_dec_diff < 6)
+            $display("[CMP_MDEC_DIFF t=%0t] masked.in0=%h shadow.in0=%h | m.raddr_R1=%h s.raddr_R1=%h | m.rd_RAM2=%h s.rd_RAM2=%h | m.rd_RAM0=%h s.rd_RAM0=%h | m.rdMux0=%h s.rdMux0=%h | m.rdMux0_r1=%h s.rdMux0_r1=%h",
+                $time,
+                ntt.in0_butt, ntt_shadow.in0_butt,
+                ntt.raddr_RAM1, ntt_shadow.raddr_RAM1,
+                ntt.rdata_RAM2, ntt_shadow.rdata_RAM2,
+                ntt.rdata_RAM0, ntt_shadow.rdata_RAM0,
+                ntt.rdata_RAM_mux0, ntt_shadow.rdata_RAM_mux0,
+                ntt.rdata_RAM_mux0_r1, ntt_shadow.rdata_RAM_mux0_r1);
+        cmp_m_dec_diff <= cmp_m_dec_diff + 1;
+    end
+end
 hash_core_Server hash(
 .clk(clk),
 .rst(rst),
@@ -678,5 +763,58 @@ fifo_generator_2 IFIFO(.clk(clk),.srst(rst),.din(din),.wr_en(wen),.rd_en(decode_
 fifo_generator_3 OFIFO(.clk(clk),.srst(rst),.din(OFIFO_din),.wr_en(OFIFO_wen),.rd_en(OFIFO_req),.dout(OFIFO_dout),.full(OFIFO_full),.empty(OFIFO_empty));
 fifo_generator_4 DFIFO0(.clk(clk),.srst(rst),.din(DFIFO0_din),.wr_en(DFIFO0_wen),.rd_en(req_D0),.dout(DFIFO0_dout),.full(DFIFO0_full),.empty(DFIFO0_empty),.prog_full_thresh(DFIFO0_prog_thresh),.prog_full(DFIFO0_prog_full));
 fifo_generator_5 DFIFO1(.clk(clk),.srst(rst),.din(DFIFO1_din),.wr_en(DFIFO1_wen),.rd_en(req_D1),.dout(DFIFO1_dout),.full(DFIFO1_full),.empty(DFIFO1_empty));
+
+integer ks_wen_cnt = 0;
+integer ks_dec_cnt = 0;
+integer ks_d0_cnt  = 0;
+integer ks_d1_cnt  = 0;
+integer ks_d1w_cnt = 0;
+always @(posedge clk) begin
+    if (DFIFO1_wen) begin
+        ks_d1w_cnt <= ks_d1w_cnt + 1;
+        if (ks_d1w_cnt < 30 || ks_d1w_cnt % 50 == 0)
+            $display("[KS_D1WR t=%0t #%0d] DFIFO1_din=%h dec_sel=%b dec_out=%h state=%h data_ctr=%h u_ctr_end=%h data_rnd_ctr=%h u_rnd_end=%h", $time, ks_d1w_cnt, DFIFO1_din, decode_sel, decode_dout, state, data_ctr, u_ctr_end, data_rnd_ctr, u_rnd_end);
+    end
+end
+integer dec_sel_ev = 0;
+reg dec_sel_prev = 1'b0;
+integer s23_cnt = 0;
+always @(posedge clk) begin
+    if (decode_sel != dec_sel_prev) begin
+        $display("[KS_DECSEL t=%0t #%0d] decode_sel: %b -> %b  state=%h data_ctr=%h u_ctr_end=%h", $time, dec_sel_ev, dec_sel_prev, decode_sel, state, data_ctr, u_ctr_end);
+        dec_sel_ev <= dec_sel_ev + 1;
+    end
+    dec_sel_prev <= decode_sel;
+    // Snapshot every 100th cycle in state 0x23, plus first 5
+    if (state == 6'h 23) begin
+        s23_cnt <= s23_cnt + 1;
+        if (s23_cnt < 5 || s23_cnt % 100 == 0)
+            $display("[KS_S23 t=%0t #%0d] decode_din=%h decode_dout=%h IFIFO_empty=%b IFIFO_full=%b DFIFO0_load_b=%b decode_req=%b decode_valid=%b dec_sel=%b", $time, s23_cnt, decode_din, decode_dout, IFIFO_empty, IFIFO_full, DFIFO0_load_b, decode_req, decode_valid, decode_sel);
+    end
+end
+// Sparse sampling: print first 5 events, then every 50th, plus all events inside the
+// 240-244 us window (where NTT's c_v decomp loop runs and sees din=0).
+always @(posedge clk) begin
+    if (wen) begin
+        ks_wen_cnt <= ks_wen_cnt + 1;
+        if (ks_wen_cnt < 5 || ks_wen_cnt % 50 == 0 || ($time >= 240000000 && $time <= 244000000))
+            $display("[KS_RX t=%0t #%0d] din=%h IFIFO_full=%b IFIFO_empty=%b", $time, ks_wen_cnt, din, IFIFO_full, IFIFO_empty);
+    end
+    if (decode_valid) begin
+        ks_dec_cnt <= ks_dec_cnt + 1;
+        if (ks_dec_cnt < 5 || ks_dec_cnt % 50 == 0 || ($time >= 240000000 && $time <= 244000000))
+            $display("[KS_DEC t=%0t #%0d] decode_dout=%h decode_din=%h IFIFO_empty=%b DFIFO0_full=%b DFIFO0_empty=%b DFIFO1_full=%b DFIFO1_empty=%b", $time, ks_dec_cnt, decode_dout, decode_din, IFIFO_empty, DFIFO0_full, DFIFO0_empty, DFIFO1_full, DFIFO1_empty);
+    end
+    if (req_D0) begin
+        ks_d0_cnt <= ks_d0_cnt + 1;
+        if (ks_d0_cnt < 5 || ks_d0_cnt % 50 == 0 || ($time >= 240000000 && $time <= 244000000))
+            $display("[KS_PULL0 t=%0t #%0d] DFIFO0_dout=%h DFIFO0_empty=%b NTT_din=%h sel=%b%b%b%b", $time, ks_d0_cnt, DFIFO0_dout, DFIFO0_empty, NTT_din, ofifo0_req_r1, ofifo1_req_r1, req_D0_r1, req_D1_r1);
+    end
+    if (req_D1) begin
+        ks_d1_cnt <= ks_d1_cnt + 1;
+        if (ks_d1_cnt < 5 || ks_d1_cnt % 50 == 0 || ($time >= 240000000 && $time <= 244000000))
+            $display("[KS_PULL1 t=%0t #%0d] DFIFO1_dout=%h DFIFO1_empty=%b NTT_din=%h sel=%b%b%b%b", $time, ks_d1_cnt, DFIFO1_dout, DFIFO1_empty, NTT_din, ofifo0_req_r1, ofifo1_req_r1, req_D0_r1, req_D1_r1);
+    end
+end
 
 endmodule

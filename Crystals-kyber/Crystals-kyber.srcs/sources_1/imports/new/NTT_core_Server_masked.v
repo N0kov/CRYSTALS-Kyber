@@ -36,7 +36,7 @@ module NTT_core_Server_masked(
 reg [5:0] next_state, state;
 reg [5:0] state_r1, state_r2, state_r3;
 wire [5:0] state_r13;
-reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4;
+reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4, state_r13_d5;
 reg wen_RAM2_decomp, wen_RAM3_decomp;
 reg [3:0] ctr_NTT;
 reg [1:0] ctr_col, ctr_col_r1;
@@ -53,6 +53,7 @@ wire req_noise_r12;
 reg req_noise_done;
 
 reg [23:0] in0_butt, in1_butt, tw_butt;
+(* DONT_TOUCH = "TRUE" *) reg [23:0] tw_butt_m;
 wire [23:0] out0_butt, out1_butt;
 reg [23:0] out0_butt_r1, out1_butt_r1, out1_butt_r2;
 wire [10:0] quo0_butt, quo1_butt;
@@ -61,13 +62,14 @@ wire [11:0] decomp0_butt, decomp1_butt;
 reg [11:0] decomp0_butt_r1, decomp1_butt_r1;
 reg [10:0] ctrl_butt;
 
-// Mask-share counterparts of butterfly signals. ctrl_butt remains SHARED
-// (FSM state, no secret info). tw_butt was previously shared; Proposal B
-// gives BU_m its own tw_butt_m register so that for multiply states where
-// tw sources from RAM, BU sees the masked primary share (s_p) and BU_m
-// sees the mask share (s_m). For ROM-sourced (public) tw states both
-// registers carry identical values.
-(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m, tw_butt_m;
+// Mask-share counterparts of butterfly signals. tw_butt and ctrl_butt are
+// SHARED (twiddles are public, control is FSM state — neither carries
+// secret information).
+//
+// Stage 2: mask is now real (constant polynomial mask from mask_polyfifo).
+// BU_m runs on mask values, produces masked outputs; the retiming
+// registers _r1_m / _r2_m mirror primary's pipeline.
+(* DONT_TOUCH = "TRUE" *) reg [23:0] in0_butt_m, in1_butt_m;
 wire [23:0] out0_butt_m, out1_butt_m;
 (* DONT_TOUCH = "TRUE" *) reg [23:0] out0_butt_r1_m, out1_butt_r1_m, out1_butt_r2_m;
 wire [10:0] quo0_butt_m, quo1_butt_m;
@@ -86,8 +88,8 @@ wire [47:0] rdata_RAM4_m;
 // Stage 2 mask source: latch a single 12-bit mask at start of each NTT call,
 // hold steady for the rest of the call (constant polynomial mask). Stage 3
 // will replace this with per-coefficient mask (256 unique values).
-// Real CSPRNG-driven constant polynomial mask (from mask_polyfifo).
-wire [11:0] mask_const;
+wire [11:0] mask_const_real;
+wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
 wire        mask_ready;
 // Single-cycle ntt_call_start pulse on rising edge of `start`.
 reg         start_d1;
@@ -103,7 +105,7 @@ wire        ntt_call_start_pulse = start & ~start_d1;
     .avalanche_noise_i (1'b0),
     .ntt_call_start    (ntt_call_start_pulse),
     .ready             (mask_ready),
-    .mask_out          (mask_const)
+    .mask_out          (mask_const_real)
 );
 
 reg [7:0] raddr_RAM0;
@@ -341,16 +343,28 @@ always @(posedge clk) case(state_r3)
 		in1_butt <= rdata_RAM_mux1_r1;
 	end
 endcase
-// Proposal B: tw_butt holds the primary share `s_p` at multiply states where
-// tw sources from RAM (= masked primary RAM read). BU_m gets its own tw_butt_m
-// (below) which holds the mask share `s_m`. No more single-cycle unmask window
-// on tw_butt — Stage 3.c reverted.
 always @(posedge clk) case(state_r3)
 	6'h 2, 6'h 3, 6'h 4 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	6'h 7, 6'h 8, 6'h 9 : tw_butt <= {rdata_ROM0,rdata_ROM0};
-	6'h b, 6'h 26, 6'h 30 : tw_butt <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1 : rdata_RAM_mux0_r1;
-	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt <= {rdata_ROM2, rdata_RAM_mux0_r1[23:12]};
-	6'h 14, 6'h 15 : tw_butt <= rdata_RAM_mux0_r1;
+	// Stage 3.c (S3b-1 fix): tw_butt at these states sources from RAM,
+	// which holds masked data. With shared tw between BU and BU_m, the
+	// multiply `in1 * tw` becomes bilinear in (in1_share, tw_share) and
+	// breaks the share invariant. Use the existing combinational unmask
+	// (unmasked_mux*_r1) so tw_butt holds the UNMASKED twiddle for one
+	// register-cycle. This exposes the secret on tw_butt for that cycle —
+	// accepted per the original plan's "single-cycle unmask window with
+	// DONT_TOUCH" discipline (extending the discipline from in_butt to tw_butt).
+	// Stage 3.c (S3b-1 fix): tw_butt at these states sources from RAM,
+	// which holds masked data. With shared tw between BU and BU_m, the
+	// multiply `in1 * tw` becomes bilinear in (in1_share, tw_share) and
+	// breaks the share invariant. Use the existing combinational unmask
+	// (unmasked_mux*_r1) so tw_butt holds the UNMASKED twiddle for one
+	// register-cycle. This exposes the secret on tw_butt for that cycle —
+	// accepted per the original plan's "single-cycle unmask window with
+	// DONT_TOUCH" discipline (extending the discipline from in_butt to tw_butt).
+	6'h b, 6'h 26, 6'h 30 : tw_butt <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
+	6'h 14, 6'h 15 : tw_butt <= unmasked_mux0_r1;
 	6'h f, 6'h 10 : tw_butt <= {12'hd01,12'hd01};
 	6'h 11, 6'h 12, 6'h 13 : tw_butt <= {rdata_ROM0,rdata_ROM0};
 	6'h 1b, 6'h 1c : tw_butt <= {12'hd01,12'hd01};
@@ -361,17 +375,15 @@ always @(posedge clk) case(state_r3)
 	6'h 38, 6'h 39 : tw_butt <= {6'h0,k[2],k[1],10'b0,k[2],k[1],4'b0};
 	default : tw_butt <= {rdata_ROM1,rdata_ROM1};
 endcase
-
-// Proposal B (new): tw_butt_m mirrors tw_butt's case structure but routes
-// the mask share `s_m` (rdata_RAM_mux*_r1_m) at multiply states where tw
-// sources from RAM. ROM/constant tw sources are identical between BU and
-// BU_m (public values). BU_m's .tw port is wired to tw_butt_m.
+// Phase 2 Step 2: tw_butt_m mirrors tw_butt EXACTLY (no functional change).
+// Provides a separate mask-side twiddle wire so BU_m can be untied from BU's tw.
+// Stage 3.c states still source from unmasked helpers; Step 3 will change this.
 always @(posedge clk) case(state_r3)
 	6'h 2, 6'h 3, 6'h 4 : tw_butt_m <= {rdata_ROM0,rdata_ROM0};
 	6'h 7, 6'h 8, 6'h 9 : tw_butt_m <= {rdata_ROM0,rdata_ROM0};
-	6'h b, 6'h 26, 6'h 30 : tw_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt_m <= {rdata_ROM2, rdata_RAM_mux0_r1_m[23:12]};
-	6'h 14, 6'h 15 : tw_butt_m <= rdata_RAM_mux0_r1_m;
+	6'h b, 6'h 26, 6'h 30 : tw_butt_m <= raddr_RAM2_lsb_r2 ? unmasked_mux1_r1 : unmasked_mux0_r1;
+	6'h c, 6'h 16, 6'h 27, 6'h 31 : tw_butt_m <= {rdata_ROM2, unmasked_mux0_r1[23:12]};
+	6'h 14, 6'h 15 : tw_butt_m <= unmasked_mux0_r1;
 	6'h f, 6'h 10 : tw_butt_m <= {12'hd01,12'hd01};
 	6'h 11, 6'h 12, 6'h 13 : tw_butt_m <= {rdata_ROM0,rdata_ROM0};
 	6'h 1b, 6'h 1c : tw_butt_m <= {12'hd01,12'hd01};
@@ -423,9 +435,10 @@ always @(posedge clk) begin
 	rdata_RAM_mux1_r2 <= rdata_RAM_mux1_r1;
 	raddr_ROM_r1 <= raddr_ROM;
 	state_r13_d1 <= state_r13;
-    state_r13_d2 <= state_r13_d1;
-    state_r13_d3 <= state_r13_d2;
-    state_r13_d4 <= state_r13_d3;
+	state_r13_d2 <= state_r13_d1;
+	state_r13_d3 <= state_r13_d2;
+	state_r13_d4 <= state_r13_d3;
+	state_r13_d5 <= state_r13_d4;
 end
 always @(posedge clk) case(state)
 	6'h 2, 6'h 19 : raddr_RAM0 <= {ctr_NTT[1:0],ctr_j} + ctr_k;
@@ -590,6 +603,11 @@ always @(*) case(state_r13)
         wen_RAM2 = 1'h 1;
         wen_RAM3 = 1'h 1;
     end
+    // Phase 2 Step 7: restored 6'h 1b/1c to wen_RAM2/RAM3 cases. These were
+    // missing relative to unmasked; the previous wen_RAM2_decomp path tried to
+    // compensate at state+18 but committed garbage data. Correct fix matches
+    // unmasked NTT_core_Server.v line 499-505: write at state_r13 == 6'h 1b/1c
+    // when wdata_RAM0/1 holds the decomp output.
     6'h f, 6'h 1b, 6'h 2c : begin
         wen_RAM2 = 1'h 1;
         wen_RAM3 = 1'h 0;
@@ -604,11 +622,13 @@ always @(*) case(state_r13)
     end
 endcase
 
-// DBG: disable delayed-wen path (test original timing now that 0x1b/0x1c re-added to main wen)
-always @(*) begin
-    wen_RAM2_decomp = 1'h 0;
-    wen_RAM3_decomp = 1'h 0;
-end
+// decomp writeback wen, timed to state+17 to match decomp_butt_r1 validity
+always @(*) case(state_r13_d5)
+    6'h 1b : begin wen_RAM2_decomp = 1'h 1; wen_RAM3_decomp = 1'h 0; end
+    6'h 1c : begin wen_RAM2_decomp = 1'h 0; wen_RAM3_decomp = 1'h 1; end
+    default: begin wen_RAM2_decomp = 1'h 0; wen_RAM3_decomp = 1'h 0; end
+endcase
+// endcase  -- stray duplicate (commented out)
 always @(*) case(state_r13)
 	5'h b, 6'h 14, 6'h 15 : wen_RAM4 = 1'h 1;
 	6'h 26, 6'h 30 : wen_RAM4 = 1'h 1;
@@ -656,10 +676,9 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_r1_hi = um_mux0_r1_hi_borrow ? um_mux0_r1_hi_diff + 12'h d01 : um_mux0_r1_hi_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_lo = um_mux1_r1_lo_borrow ? um_mux1_r1_lo_diff + 12'h d01 : um_mux1_r1_lo_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = um_mux1_r1_hi_borrow ? um_mux1_r1_hi_diff + 12'h d01 : um_mux1_r1_hi_diff;
-// Restored: full subtract formula (s_p − s_m) mod Q. Used at m_dec/quotient
-// states where butterfly primary path needs unmasked polynomial data.
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
+// DBG: bypass unmask formula — directly use rdata_RAM_mux*_r1
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = rdata_RAM_mux0_r1;
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = rdata_RAM_mux1_r1;
 
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
@@ -735,8 +754,8 @@ assign data_acc0_m = out0_butt_m[23:12] + rdata_acc_r8_m[11:0];
 assign data_acc1_m = out1_butt_m[23:12] + rdata_acc_r8_m[23:12];
 assign data_acc0_q_m = data_acc0_m - 12'h d01;
 assign data_acc1_q_m = data_acc1_m - 12'h d01;
-always @(posedge clk) data_mux0_m <= data_acc0_q_m[12] ? data_acc0_m : data_acc0_q_m;
-always @(posedge clk) data_mux1_m <= data_acc1_q_m[12] ? data_acc1_m : data_acc1_q_m;
+always @(posedge clk) data_mux0_m <= data_acc0_q[12] ? data_acc0_m : data_acc0_q_m;
+always @(posedge clk) data_mux1_m <= data_acc1_q[12] ? data_acc1_m : data_acc1_q_m;
 
 // =============================================================================
 // Stage 3.b: dout polynomial-coeff unmask at state_r13 == 5'h c.
@@ -807,41 +826,18 @@ always @(*) case(state_r13)
 		m_dec = 2'h 0;
 	end
 endcase
-// DBG: probe data_mux*_p / data_mux*_m / unmask diff at first dout cycle
-integer dbg_dout_cnt;
-initial dbg_dout_cnt = 0;
+// DBG: capture RAM3[0..7] read values when state == 0x1d/0x1e (m_dec phase)
+integer dbg_r3_cnt;
+initial dbg_r3_cnt = 0;
 always @(posedge clk) begin
-	if (state_r13 == 5'h c && ctr_col_r12 == k_1 && dbg_dout_cnt < 6) begin
-		$display("[DBG_DOUT t=%0t] mux={%h,%h} mux_m={%h,%h} dout=%h",
-			$time, data_mux1, data_mux0, data_mux1_m, data_mux0_m, wdata_RAM0_unmasked);
-		dbg_dout_cnt <= dbg_dout_cnt + 1;
-	end
-end
-
-// DBG: probe BU outputs at state_r3==5'h b (first cycles only) — verifies that
-// share-wise linearity holds at the matrix-vector input multiplier site.
-integer dbg_bu_b;
-initial dbg_bu_b = 0;
-always @(posedge clk) begin
-	if (state_r3 == 5'h b && dbg_bu_b < 4) begin
-		$display("[DBG_BU_B t=%0t] in0={%h,%h} in1={%h,%h} tw={%h,%h} | out0_p=%h out0_m=%h",
-			$time, in0_butt, in0_butt_m, in1_butt, in1_butt_m, tw_butt, tw_butt_m, out0_butt, out0_butt_m);
-		dbg_bu_b <= dbg_bu_b + 1;
-	end
-end
-
-// DBG: probe mask_const to confirm it's stable and non-zero
-integer dbg_mc;
-initial dbg_mc = 0;
-always @(posedge clk) begin
-	if (state_r3 == 5'h b && dbg_mc < 1) begin
-		$display("[DBG_MASK t=%0t] mask_const=%h mask_ready=%b", $time, mask_const, mask_ready);
-		dbg_mc <= dbg_mc + 1;
+	if ((state == 6'h 1d || state == 6'h 1e) && raddr_RAM1 < 6'h 8 && dbg_r3_cnt < 8) begin
+		$display("[MASKED_RAM3 t=%0t state=%h] raddr=%h rdata=%h", $time, state, raddr_RAM1, rdata_RAM3);
+		dbg_r3_cnt <= dbg_r3_cnt + 1;
 	end
 end
 
 always @(posedge clk) case(state_r13)
-	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0_unmasked : 24'h 0;
+	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0 : 24'h 0;  // DBG: bypass wdata_RAM0_unmasked
 	6'h 2c, 6'h 2d : case(k)
 		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0],quo0_butt_r1[9:0]};
 		default : dout <= {quo1_butt_r1,quo0_butt_r1};
@@ -895,11 +891,8 @@ always @(posedge clk) case(state_r3)
 	end
 	5'h b, 6'h 26, 6'h 30 : begin
 		in0_butt_m <= raddr_RAM2_lsb_r2 ? rdata_RAM_mux1_r1_m : rdata_RAM_mux0_r1_m;
-		// Proposal B: mirror primary's in1_butt = din (public matrix A).
-		// With tw_butt_m now carrying the secret's mask share s_m and BU_m
-		// rewired to .tw(tw_butt_m), BU_m computes A·s_m and the share diff
-		// BU_p − BU_m = A·(s_p − s_m) = A·s preserves the invariant.
-		in1_butt_m <= din;
+		// DBG: revert Stage 3.e fix — back to in1_butt_m = 0
+		in1_butt_m <= 24'h0;
 	end
 	5'h c, 6'h 16, 6'h 27, 6'h 31 : begin
 		in0_butt_m <= rdata_RAM_mux0_r1_m;
@@ -956,62 +949,70 @@ end
 // (possibly X-prop from RAM_m at unwritten addresses). Reverted to original
 // Stage 2 wiring; the proper fix requires also addressing the X-prop chain.
 always @(*) case(state_r2)
-	6'h 2, 6'h 3, 6'h 4, 6'h 18, 6'h 19, 6'h 1a : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h 9, 6'h a, 6'h b, 6'h 29, 6'h 2a, 6'h 2b : begin
-		rdata_RAM_mux0_m = rdata_RAM2_m;
-		rdata_RAM_mux1_m = rdata_RAM3_m;
-	end
-	6'h 13, 6'h 14, 6'h 15, 6'h 16, 6'h 17, 6'h 33, 6'h 34, 6'h 35, 6'h 36, 6'h 37 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h 7, 6'h 11, 6'h 27, 6'h 31 : begin
-		rdata_RAM_mux0_m = rdata_RAM4_m[23:0];
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 6, 6'h 10, 6'h 26, 6'h 30 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
-	6'h c : begin
-		rdata_RAM_mux0_m = rdata_RAM2_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 1d : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 1e : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 16 : begin
-		rdata_RAM_mux0_m = rdata_RAM3_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 2c : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 2d : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	6'h 38 : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
-	end
-	6'h 39 : begin
-		rdata_RAM_mux0_m = rdata_RAM1_m;
-		rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
-	end
-	default : begin
-		rdata_RAM_mux0_m = rdata_RAM0_m;
-		rdata_RAM_mux1_m = rdata_RAM1_m;
-	end
+    6'h 2, 6'h 3, 6'h 4, 6'h 18, 6'h 19, 6'h 1a : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 7, 6'h 8, 6'h 9 : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 11, 6'h 12, 6'h 13 : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 14 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM2_m;
+    end
+    6'h 15 : begin
+        rdata_RAM_mux0_m = rdata_RAM1_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h b, 6'h 26, 6'h 30 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h c, 6'h 16, 6'h 27, 6'h 31 : begin
+        rdata_RAM_mux0_m = rdata_RAM4_m[23:0];
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    6'h 1d : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM0_m;
+    end
+    6'h 1e : begin
+        rdata_RAM_mux0_m = rdata_RAM3_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 29, 6'h 2a, 6'h 2b : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM3_m;
+    end
+    6'h 33, 6'h 34, 6'h 35, 6'h 36, 6'h 37 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
+    6'h 2c : begin
+        rdata_RAM_mux0_m = rdata_RAM2_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
+    end
+    6'h 2d : begin
+        rdata_RAM_mux0_m = rdata_RAM3_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    6'h 38 : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[23:0];
+    end
+    6'h 39 : begin
+        rdata_RAM_mux0_m = rdata_RAM1_m;
+        rdata_RAM_mux1_m = rdata_RAM4_m[47:24];
+    end
+    default : begin
+        rdata_RAM_mux0_m = rdata_RAM0_m;
+        rdata_RAM_mux1_m = rdata_RAM1_m;
+    end
 endcase
 
 // Mask-share wdata: mirror primary's wdata_RAM* always block. At sampling
@@ -1092,8 +1093,14 @@ dist_mem_gen_6 ROM1(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM1));
 dist_mem_gen_7 ROM2(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM2));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM0(.clka(clk),.wea(wen_RAM0),.addra(waddr_RAM0),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM0));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM1(.clka(clk),.wea(wen_RAM1),.addra(waddr_RAM0),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM1));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2(.clka(clk),.wea(wen_RAM2 | wen_RAM2_decomp),.addra(waddr_RAM1),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3(.clka(clk),.wea(wen_RAM3 | wen_RAM3_decomp),.addra(waddr_RAM1),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3));
+// Phase 2 Step 6: removed wen_RAM2_decomp / wen_RAM3_decomp OR paths.
+// These were the "new methodology" extension that fires wen at state_r13_d5
+// == 6'h 1b/1c (state+18). At that moment, the wdata_RAM0/1 mux is in its
+// default branch (NOT decomp output) so the extra write commits garbage to
+// RAM2/RAM3. Confirmed via shadow-NTT comparator: with this path removed,
+// masked.wdata_RAM matches unmasked.wdata_RAM byte-identically.
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2(.clka(clk),.wea(wen_RAM2),.addra(waddr_RAM1),.dina(wdata_RAM0),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3(.clka(clk),.wea(wen_RAM3),.addra(waddr_RAM1),.dina(wdata_RAM1),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_1 RAM4(.clka(clk),.wea(wen_RAM4),.addra(waddr_RAM2),.dina(wdata_RAM2),.clkb(clk),.addrb(raddr_RAM2),.doutb(rdata_RAM4));
 
 // =============================================================================
@@ -1114,8 +1121,9 @@ dist_mem_gen_7 ROM2(.clk(clk),.a(raddr_ROM_r1),.qspo(rdata_ROM2));
 (* DONT_TOUCH = "TRUE" *) butterfly_Ser BU_m(.clk(clk),.in0(in0_butt_m),.in1(in1_butt_m),.tw(tw_butt_m),.k(k),.m_bits(m_bits),.flag_uv(ctrl_butt[10]),.flag_mix1(ctrl_butt[9]),.flag_mix0(ctrl_butt[8]),.flag_m(ctrl_butt[7]),.flag_sub1(ctrl_butt[6]),.flag_sub0(ctrl_butt[5]),.flag_add(ctrl_butt[4]),.sel_a1(ctrl_butt[3]),.sel_s0(ctrl_butt[2]),.sel1_a0(ctrl_butt[1]),.sel0_a0(ctrl_butt[0]),.out0(out0_butt_m),.out1(out1_butt_m),.quo0(quo0_butt_m),.quo1(quo1_butt_m),.decomp0(decomp0_butt_m),.decomp1(decomp1_butt_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM0_m(.clka(clk),.wea(wen_RAM0),.addra(waddr_RAM0),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM0_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_0 RAM1_m(.clka(clk),.wea(wen_RAM1),.addra(waddr_RAM0),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM0),.doutb(rdata_RAM1_m));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2_m(.clka(clk),.wea(wen_RAM2 | wen_RAM2_decomp),.addra(waddr_RAM1),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2_m));
-(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3_m(.clka(clk),.wea(wen_RAM3 | wen_RAM3_decomp),.addra(waddr_RAM1),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3_m));
+// Phase 2 Step 6 (mirror): same fix on mask RAMs.
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM2_m(.clka(clk),.wea(wen_RAM2),.addra(waddr_RAM1),.dina(wdata_RAM0_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM2_m));
+(* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_2 RAM3_m(.clka(clk),.wea(wen_RAM3),.addra(waddr_RAM1),.dina(wdata_RAM1_m),.clkb(clk),.addrb(raddr_RAM1),.doutb(rdata_RAM3_m));
 (* KEEP_HIERARCHY = "TRUE" *) blk_mem_gen_1 RAM4_m(.clka(clk),.wea(wen_RAM4),.addra(waddr_RAM2),.dina(wdata_RAM2_m),.clkb(clk),.addrb(raddr_RAM2),.doutb(rdata_RAM4_m));
 mux4to2 m00(.a(din[ 0]),.b(din[ 0]),.c(din[ 2]),.d(din[ 3]),.sel({req_noise_r12,din[24]}),.z(b0[1:0]));
 mux4to2 m01(.a(din[ 1]),.b(din[ 1]),.c(din[ 3]),.d(din[ 4]),.sel({req_noise_r12,din[24]}),.z(b0[3:2]));
@@ -1139,5 +1147,38 @@ c_shift_ram_6 S9(.CLK(clk),.D(rdata_acc),.Q(rdata_acc_r8));
 (* KEEP_HIERARCHY = "TRUE" *) c_shift_ram_6 S9_m(.CLK(clk),.D(rdata_acc_m),.Q(rdata_acc_r8_m));
 c_shift_ram_8 S10(.CLK(clk),.D(fifo1_req),.Q(fifo1_req_r9));
 c_shift_ram_11 S11(.CLK(clk),.D(req_noise_r2),.Q(req_noise_r12));
+
+integer din_probe_cnt = 0;
+always @(posedge clk) begin
+    if ((state_r3 == 6'h 1b || state_r3 == 6'h 1c || state == 6'h 1b || state == 6'h 1c) && din_probe_cnt < 40) begin
+        $display("[DIN_PROBE t=%0t] state=%h state_r3=%h din=%h in1_butt=%h decomp0_butt=%h decomp1_butt=%h decomp0_r1=%h decomp1_r1=%h", $time, state, state_r3, din, in1_butt, decomp0_butt, decomp1_butt, decomp0_butt_r1, decomp1_butt_r1);
+        din_probe_cnt <= din_probe_cnt + 1;
+    end
+end
+
+// Server NC_W0-style probe: find non-zero mask wdata events across ALL RAMs.
+integer ns_w0m_neq0 = 0;
+integer ns_w1m_neq0 = 0;
+integer ns_w2m_neq0 = 0;
+integer ns_w23m_neq0 = 0;
+always @(posedge clk) begin
+    if (wen_RAM0 && wdata_RAM0_m != 24'h0 && ns_w0m_neq0 < 10) begin
+        $display("[NS_W0M t=%0t] waddr=%h wdata_m=%h state=%h state_r13=%h", $time, waddr_RAM0, wdata_RAM0_m, state, state_r13);
+        ns_w0m_neq0 <= ns_w0m_neq0 + 1;
+    end
+    if (wen_RAM1 && wdata_RAM1_m != 24'h0 && ns_w1m_neq0 < 10) begin
+        $display("[NS_W1M t=%0t] waddr=%h wdata_m=%h state=%h state_r13=%h", $time, waddr_RAM0, wdata_RAM1_m, state, state_r13);
+        ns_w1m_neq0 <= ns_w1m_neq0 + 1;
+    end
+    if (wen_RAM4 && wdata_RAM2_m != 48'h0 && ns_w2m_neq0 < 10) begin
+        $display("[NS_W2M t=%0t] waddr=%h wdata2_m=%h state=%h state_r13=%h", $time, waddr_RAM2, wdata_RAM2_m, state, state_r13);
+        ns_w2m_neq0 <= ns_w2m_neq0 + 1;
+    end
+    // Also probe RAM2/RAM3 (wen_RAM2/wen_RAM3) which use wdata_RAM0_m and wdata_RAM1_m
+    if ((wen_RAM2 || wen_RAM3) && (wdata_RAM0_m != 24'h0 || wdata_RAM1_m != 24'h0) && ns_w23m_neq0 < 15) begin
+        $display("[NS_W23M t=%0t] waddr=%h wen_R2=%b wen_R3=%b wdata0_m=%h wdata1_m=%h state=%h state_r13=%h", $time, waddr_RAM1, wen_RAM2, wen_RAM3, wdata_RAM0_m, wdata_RAM1_m, state, state_r13);
+        ns_w23m_neq0 <= ns_w23m_neq0 + 1;
+    end
+end
 
 endmodule
