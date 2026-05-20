@@ -89,7 +89,9 @@ wire [47:0] rdata_RAM4_m;
 // hold steady for the rest of the call (constant polynomial mask). Stage 3
 // will replace this with per-coefficient mask (256 unique values).
 wire [11:0] mask_const_real;
-wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
+// Phase 2 Stage C: real CSPRNG mask enabled. Was forced to 12'h0 during
+// Gate 1 architecture validation; now uses mask_polyfifo's mask_const_real.
+wire [11:0] mask_const = mask_const_real;
 wire        mask_ready;
 // Single-cycle ntt_call_start pulse on rising edge of `start`.
 reg         start_d1;
@@ -287,13 +289,26 @@ always @(posedge clk) case(state_r3)
 endcase
 
 always @(posedge clk) case(state_r3)
-	6'h 2, 6'h 7, 6'h 11, 6'h 19, 6'h 2a, 6'h 34, 6'h 36 : begin
+	6'h 2, 6'h 7, 6'h 11, 6'h 19, 6'h 2a, 6'h 34 : begin
 		in0_butt <= rdata_RAM_mux0_r1;
 		in1_butt <= rdata_RAM_mux0;
 	end
-	6'h 3, 6'h 8, 6'h 12, 6'h 1a, 6'h 2b, 6'h 35, 6'h 37  : begin
+	6'h 3, 6'h 8, 6'h 12, 6'h 1a, 6'h 2b, 6'h 35 : begin
 		in0_butt <= rdata_RAM_mux1_r2;
 		in1_butt <= rdata_RAM_mux1_r1;
+	end
+	// Phase 2 Stage C: compression op (ctrl=0x3f0) is non-linear in the share.
+	// Load BU inputs from unmasked truth so the share invariant is preserved
+	// for non-zero mask. Single-cycle leak window on in_butt registers
+	// (Stage 3.c discipline). With wdata_RAM*_m forced to 0 at the matching
+	// state_r13 writeback, share invariant: primary - 0 = truth.
+	6'h 36 : begin
+		in0_butt <= unmasked_mux0_r1;
+		in1_butt <= unmasked_mux0;
+	end
+	6'h 37 : begin
+		in0_butt <= unmasked_mux1_r2;
+		in1_butt <= unmasked_mux1_r1;
 	end
 	6'h 4, 6'h 9, 6'h 13, 6'h 18, 6'h 29, 6'h 33 : begin
 		in0_butt <= rdata_RAM_mux0_r1;
@@ -676,9 +691,32 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_r1_hi = um_mux0_r1_hi_borrow ? um_mux0_r1_hi_diff + 12'h d01 : um_mux0_r1_hi_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_lo = um_mux1_r1_lo_borrow ? um_mux1_r1_lo_diff + 12'h d01 : um_mux1_r1_lo_diff;
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = um_mux1_r1_hi_borrow ? um_mux1_r1_hi_diff + 12'h d01 : um_mux1_r1_hi_diff;
-// DBG: bypass unmask formula — directly use rdata_RAM_mux*_r1
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = rdata_RAM_mux0_r1;
-(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = rdata_RAM_mux1_r1;
+// Phase 2 Stage C: unmask formula re-enabled. With non-zero mask, must compute
+// (primary - mask) mod Q to recover unmasked truth at output states. The DBG
+// bypass was harmless at mask=0 but breaks correctness once mask_const != 0.
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
+
+// Phase 2 Stage C: additional unmask helpers needed for state_r3 == 6'h 36/37
+// (compression op ctrl=0x3f0). BU at those states reads rdata_RAM_mux0
+// (undelayed) and rdata_RAM_mux1_r2 (double-delayed), neither of which had
+// unmask helpers before. Compression is non-linear so BU must operate on
+// unmasked truth (Stage 3.c-style discipline; single-cycle leak accepted).
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_lo_diff = rdata_RAM_mux0[11:0]  - rdata_RAM_mux0_m[11:0];
+(* DONT_TOUCH = "TRUE" *) wire        um_mux0_lo_borrow = rdata_RAM_mux0[11:0]  < rdata_RAM_mux0_m[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_hi_diff = rdata_RAM_mux0[23:12] - rdata_RAM_mux0_m[23:12];
+(* DONT_TOUCH = "TRUE" *) wire        um_mux0_hi_borrow = rdata_RAM_mux0[23:12] < rdata_RAM_mux0_m[23:12];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_lo = um_mux0_lo_borrow ? um_mux0_lo_diff + 12'h d01 : um_mux0_lo_diff;
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_hi = um_mux0_hi_borrow ? um_mux0_hi_diff + 12'h d01 : um_mux0_hi_diff;
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0 = {um_mux0_hi, um_mux0_lo};
+
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_lo_diff = rdata_RAM_mux1_r2[11:0]  - rdata_RAM_mux1_r2_m[11:0];
+(* DONT_TOUCH = "TRUE" *) wire        um_mux1_r2_lo_borrow = rdata_RAM_mux1_r2[11:0]  < rdata_RAM_mux1_r2_m[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_hi_diff = rdata_RAM_mux1_r2[23:12] - rdata_RAM_mux1_r2_m[23:12];
+(* DONT_TOUCH = "TRUE" *) wire        um_mux1_r2_hi_borrow = rdata_RAM_mux1_r2[23:12] < rdata_RAM_mux1_r2_m[23:12];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_lo = um_mux1_r2_lo_borrow ? um_mux1_r2_lo_diff + 12'h d01 : um_mux1_r2_lo_diff;
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_hi = um_mux1_r2_hi_borrow ? um_mux1_r2_hi_diff + 12'h d01 : um_mux1_r2_hi_diff;
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r2 = {um_mux1_r2_hi, um_mux1_r2_lo};
 
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
@@ -754,8 +792,15 @@ assign data_acc0_m = out0_butt_m[23:12] + rdata_acc_r8_m[11:0];
 assign data_acc1_m = out1_butt_m[23:12] + rdata_acc_r8_m[23:12];
 assign data_acc0_q_m = data_acc0_m - 12'h d01;
 assign data_acc1_q_m = data_acc1_m - 12'h d01;
-always @(posedge clk) data_mux0_m <= data_acc0_q[12] ? data_acc0_m : data_acc0_q_m;
-always @(posedge clk) data_mux1_m <= data_acc1_q[12] ? data_acc1_m : data_acc1_q_m;
+// Phase 2 Stage C fix: cross-share selector bug. Mask-side reduction was
+// gated by primary's borrow bit (data_acc*_q[12]) instead of its own
+// (data_acc*_q_m[12]). When primary overflowed Q (frequent with non-zero
+// mask) but mask sum did not, the mask path was wrongly reduced as
+// (mask_sum - Q) mod 2^12, producing 0x2ff garbage that poisoned RAM_m
+// and broke the share invariant at state_r13 == 6'h 16. Client masked
+// already had the correct form (data_acc*_q_m[12]); Server didn't.
+always @(posedge clk) data_mux0_m <= data_acc0_q_m[12] ? data_acc0_m : data_acc0_q_m;
+always @(posedge clk) data_mux1_m <= data_acc1_q_m[12] ? data_acc1_m : data_acc1_q_m;
 
 // =============================================================================
 // Stage 3.b: dout polynomial-coeff unmask at state_r13 == 5'h c.
@@ -837,7 +882,10 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) case(state_r13)
-	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0 : 24'h 0;  // DBG: bypass wdata_RAM0_unmasked
+	// Phase 2 Stage C: use wdata_RAM0_unmasked (proper subtract of mask from
+	// primary) instead of wdata_RAM0 directly. With non-zero mask, wdata_RAM0
+	// holds masked value (a+r); dout must emit unmasked truth (a).
+	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0_unmasked : 24'h 0;
 	6'h 2c, 6'h 2d : case(k)
 		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0],quo0_butt_r1[9:0]};
 		default : dout <= {quo1_butt_r1,quo0_butt_r1};
@@ -1025,13 +1073,21 @@ always @(*) case(state_r13)
 		wdata_RAM0_m = {mask_const, mask_const};
 		wdata_RAM1_m = {mask_const, mask_const};
 	end
-	4'h 2, 5'h 7, 5'h 11, 6'h 19, 6'h 2a, 6'h 34, 6'h 36 : begin
+	4'h 2, 5'h 7, 5'h 11, 6'h 19, 6'h 2a, 6'h 34 : begin
 		wdata_RAM0_m = out0_butt_r1_m;
 		wdata_RAM1_m = out0_butt_m;
 	end
-	4'h 3, 5'h 8, 5'h 12, 6'h 1a, 6'h 2b, 6'h 35, 6'h 37 : begin
+	4'h 3, 5'h 8, 5'h 12, 6'h 1a, 6'h 2b, 6'h 35 : begin
 		wdata_RAM0_m = out1_butt_r2_m;
 		wdata_RAM1_m = out1_butt_r1_m;
+	end
+	// Phase 2 Stage C: pair with in_butt unmask above. Primary writes the
+	// compressed-truth value (BU operated on unmasked truth); mask writes 0
+	// so the share invariant becomes primary - 0 = truth at this state's
+	// writeback address.
+	6'h 36, 6'h 37 : begin
+		wdata_RAM0_m = 24'h0;
+		wdata_RAM1_m = 24'h0;
 	end
 	4'h 4, 5'h 9, 5'h 13, 6'h 18, 6'h 29, 6'h 33 : begin
 		wdata_RAM0_m = out0_butt_r1_m;

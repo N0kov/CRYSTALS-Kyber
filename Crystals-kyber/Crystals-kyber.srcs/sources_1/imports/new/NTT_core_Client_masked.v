@@ -62,7 +62,9 @@ wire [47:0] rdata_RAM4_m;
 
 // Stage 2 mask source (constant polynomial mask).
 wire [11:0] mask_const_real;
-wire [11:0] mask_const = 12'h0;  // DBG mask=0 force
+// Phase 2 Stage C: real CSPRNG mask enabled. Was forced to 12'h0 during
+// Gate 1 architecture validation; now uses mask_polyfifo's mask_const_real.
+wire [11:0] mask_const = mask_const_real;
 wire        mask_ready;
 reg         start_d1;
 always @(posedge clk) begin
@@ -105,6 +107,22 @@ wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d0
 (* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r1_hi = (um_mux1_r1_hi_t >= 13'h d01) ? um_mux1_r1_hi_t[11:0] - 12'h d01 : um_mux1_r1_hi_t[11:0];
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0_r1 = {um_mux0_r1_hi, um_mux0_r1_lo};
 (* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r1 = {um_mux1_r1_hi, um_mux1_r1_lo};
+
+// Phase 2 Stage C: additional unmask helpers for state_r3 == 5'h 16/17
+// (compression op ctrl=0x3f0 on Client butterfly). BU at those states reads
+// rdata_RAM_mux0 (undelayed) and rdata_RAM_mux1_r2 (double-delayed). Since
+// compression is non-linear, BU must operate on unmasked truth.
+(* DONT_TOUCH = "TRUE" *) wire [12:0] um_mux0_lo_t = {1'b0, rdata_RAM_mux0[11:0]}  + 13'h d01 - {1'b0, rdata_RAM_mux0_m[11:0]};
+(* DONT_TOUCH = "TRUE" *) wire [12:0] um_mux0_hi_t = {1'b0, rdata_RAM_mux0[23:12]} + 13'h d01 - {1'b0, rdata_RAM_mux0_m[23:12]};
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_lo = (um_mux0_lo_t >= 13'h d01) ? um_mux0_lo_t[11:0] - 12'h d01 : um_mux0_lo_t[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux0_hi = (um_mux0_hi_t >= 13'h d01) ? um_mux0_hi_t[11:0] - 12'h d01 : um_mux0_hi_t[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux0 = {um_mux0_hi, um_mux0_lo};
+
+(* DONT_TOUCH = "TRUE" *) wire [12:0] um_mux1_r2_lo_t = {1'b0, rdata_RAM_mux1_r2[11:0]}  + 13'h d01 - {1'b0, rdata_RAM_mux1_r2_m[11:0]};
+(* DONT_TOUCH = "TRUE" *) wire [12:0] um_mux1_r2_hi_t = {1'b0, rdata_RAM_mux1_r2[23:12]} + 13'h d01 - {1'b0, rdata_RAM_mux1_r2_m[23:12]};
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_lo = (um_mux1_r2_lo_t >= 13'h d01) ? um_mux1_r2_lo_t[11:0] - 12'h d01 : um_mux1_r2_lo_t[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [11:0] um_mux1_r2_hi = (um_mux1_r2_hi_t >= 13'h d01) ? um_mux1_r2_hi_t[11:0] - 12'h d01 : um_mux1_r2_hi_t[11:0];
+(* DONT_TOUCH = "TRUE" *) wire [23:0] unmasked_mux1_r2 = {um_mux1_r2_hi, um_mux1_r2_lo};
 
 reg [7:0] raddr_RAM0;
 reg [5:0] raddr_RAM1;
@@ -241,13 +259,25 @@ always @(posedge clk) case(state_r3)
 endcase
 
 always @(posedge clk) case(state_r3)
-	5'h 2, 5'h a, 5'h 14, 5'h 16 : begin
+	5'h 2, 5'h a, 5'h 14 : begin
 		in0_butt <= rdata_RAM_mux0_r1;
 		in1_butt <= rdata_RAM_mux0;
 	end
-	5'h 3, 5'h b, 5'h 15, 5'h 17 : begin
+	5'h 3, 5'h b, 5'h 15 : begin
 		in0_butt <= rdata_RAM_mux1_r2;
 		in1_butt <= rdata_RAM_mux1_r1;
+	end
+	// Phase 2 Stage C: compression op (ctrl=0x3f0) is non-linear in the share.
+	// Load BU inputs from unmasked truth so the share invariant is preserved
+	// for non-zero mask. wdata_RAM*_m=0 at the matching state_r13 writeback
+	// (already in place from Step 4) -> recovered = primary - 0 = truth.
+	5'h 16 : begin
+		in0_butt <= unmasked_mux0_r1;
+		in1_butt <= unmasked_mux0;
+	end
+	5'h 17 : begin
+		in0_butt <= unmasked_mux1_r2;
+		in1_butt <= unmasked_mux1_r1;
 	end
 	5'h 4, 5'h 9, 5'h 13 : begin
 		in0_butt <= rdata_RAM_mux0_r1;

@@ -715,15 +715,115 @@ always @(posedge clk) begin
     end
     if (ntt.m_ena && ntt.m_dec !== ntt_shadow.m_dec) begin
         if (cmp_m_dec_diff < 6)
-            $display("[CMP_MDEC_DIFF t=%0t] masked.in0=%h shadow.in0=%h | m.raddr_R1=%h s.raddr_R1=%h | m.rd_RAM2=%h s.rd_RAM2=%h | m.rd_RAM0=%h s.rd_RAM0=%h | m.rdMux0=%h s.rdMux0=%h | m.rdMux0_r1=%h s.rdMux0_r1=%h",
+            $display("[CMP_MDEC_DIFF t=%0t] m.m_dec=%h s.m_dec=%h | m.quo0_r1=%h quo1_r1=%h | s.quo0_r1=%h quo1_r1=%h | m.in0=%h in1=%h tw=%h | s.in0=%h in1=%h tw=%h",
                 $time,
-                ntt.in0_butt, ntt_shadow.in0_butt,
-                ntt.raddr_RAM1, ntt_shadow.raddr_RAM1,
-                ntt.rdata_RAM2, ntt_shadow.rdata_RAM2,
-                ntt.rdata_RAM0, ntt_shadow.rdata_RAM0,
-                ntt.rdata_RAM_mux0, ntt_shadow.rdata_RAM_mux0,
-                ntt.rdata_RAM_mux0_r1, ntt_shadow.rdata_RAM_mux0_r1);
+                ntt.m_dec, ntt_shadow.m_dec,
+                ntt.quo0_butt_r1, ntt.quo1_butt_r1,
+                ntt_shadow.quo0_butt_r1, ntt_shadow.quo1_butt_r1,
+                ntt.in0_butt, ntt.in1_butt, ntt.tw_butt,
+                ntt_shadow.in0_butt, ntt_shadow.in1_butt, ntt_shadow.tw_butt);
         cmp_m_dec_diff <= cmp_m_dec_diff + 1;
+    end
+end
+
+// =============================================================================
+// EARLIEST-DIVERGENCE TRACE: capture the FIRST cycle where any key signal
+// differs between masked and shadow NTT_core, and dump full context so we can
+// trace the disparity back to its source.
+//
+// Hypotheses to confirm/refute:
+//  H1: External inputs (din, ena_sft, rst, clk, etc.) are identical at every
+//      cycle. The two NTT_core instances are driven identically.
+//  H2: Internal state (state, ctr_*, raddr_*) diverges at some cycle T_div.
+//  H3: Raw sampler outputs (b0..b3) diverge before samp_q does.
+//  H4: mask_polyfifo's parallel keccak somehow perturbs the masked NTT's
+//      sampling state (would imply shared resource between mask gen and samp).
+// =============================================================================
+reg first_div_logged = 1'b0;
+integer early_probe_cnt = 0;
+always @(posedge clk) begin
+    // (A) External-input fairness check: din/m_bits/CCA_enc/start should be
+    //     identical at every cycle (both NTTs see the same wires). Print first
+    //     5 cycles after start to confirm.
+    if (early_probe_cnt < 5) begin
+        $display("[EARLY t=%0t #%0d] start=%b rst=%b din=%h m.state=%h s.state=%h m.rst_chain=...",
+            $time, early_probe_cnt, start, rst, NTT_din, ntt.state, ntt_shadow.state);
+        early_probe_cnt <= early_probe_cnt + 1;
+    end
+
+    // (B) FSM state divergence: state, state_r1/r2/r3 should be identical at
+    //     every cycle. If they diverge, the FSMs are not in lockstep (could be
+    //     reset asymmetry or X-prop).
+    if ((ntt.state !== ntt_shadow.state ||
+         ntt.state_r1 !== ntt_shadow.state_r1 ||
+         ntt.state_r2 !== ntt_shadow.state_r2 ||
+         ntt.state_r3 !== ntt_shadow.state_r3) && !first_div_logged) begin
+        $display("[FIRST_DIV_FSM t=%0t] m.state=%h s.state=%h m.r1=%h s.r1=%h m.r2=%h s.r2=%h m.r3=%h s.r3=%h",
+            $time, ntt.state, ntt_shadow.state, ntt.state_r1, ntt_shadow.state_r1,
+            ntt.state_r2, ntt_shadow.state_r2, ntt.state_r3, ntt_shadow.state_r3);
+        first_div_logged <= 1'b1;
+    end
+
+    // (C) Raw sampler signals: b0..b3 and samp0..samp3 are computed
+    //     combinationally from internal sampler state. If they diverge while
+    //     external inputs match, the sampler internal state differs (H4).
+    if ((ntt.b0 !== ntt_shadow.b0 ||
+         ntt.b1 !== ntt_shadow.b1 ||
+         ntt.b2 !== ntt_shadow.b2 ||
+         ntt.b3 !== ntt_shadow.b3) && cmp_w0_diff == 0) begin
+        // Only print before the first wdata divergence to find pre-image cause
+        if (early_probe_cnt > 5 && early_probe_cnt < 25) begin
+            $display("[B_DIFF t=%0t] m.b={%h,%h,%h,%h} s.b={%h,%h,%h,%h} m.state=%h",
+                $time, ntt.b0, ntt.b1, ntt.b2, ntt.b3,
+                ntt_shadow.b0, ntt_shadow.b1, ntt_shadow.b2, ntt_shadow.b3, ntt.state);
+        end
+    end
+
+    // (D) samp_q (registered sampler values that drive wdata_RAM0/1 at the
+    //     sampling state). If samp_q differs before samp_masked is computed,
+    //     the divergence is upstream of mask injection.
+    if ((ntt.samp0_q !== ntt_shadow.samp0_q ||
+         ntt.samp1_q !== ntt_shadow.samp1_q ||
+         ntt.samp2_q !== ntt_shadow.samp2_q ||
+         ntt.samp3_q !== ntt_shadow.samp3_q)) begin
+        if (cmp_w0_diff < 3) // limit to first few
+            $display("[SAMP_Q_DIFF t=%0t] m.samp_q={%h,%h,%h,%h} s.samp_q={%h,%h,%h,%h} state=%h",
+                $time, ntt.samp0_q, ntt.samp1_q, ntt.samp2_q, ntt.samp3_q,
+                ntt_shadow.samp0_q, ntt_shadow.samp1_q, ntt_shadow.samp2_q, ntt_shadow.samp3_q,
+                ntt.state);
+    end
+
+    // (E) Share-invariant check: at every wen_RAM0 cycle where both designs
+    //     write, compute (masked.wdata - masked.wdata_m) mod Q per 12-bit half,
+    //     compare against shadow's wdata. If they differ, the share invariant
+    //     has broken — log the FIRST cycle this happens.
+end
+
+reg invariant_broken = 1'b0;
+integer inv_diff_cnt = 0;
+// Per-half diff: (masked - mask) mod Q
+wire [12:0] inv_diff_lo = {1'b0, ntt.wdata_RAM0[11:0]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[11:0]};
+wire [11:0] inv_recovered_lo = (inv_diff_lo >= 13'h d01) ? inv_diff_lo[11:0] - 12'h d01 : inv_diff_lo[11:0];
+wire [12:0] inv_diff_hi = {1'b0, ntt.wdata_RAM0[23:12]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[23:12]};
+wire [11:0] inv_recovered_hi = (inv_diff_hi >= 13'h d01) ? inv_diff_hi[11:0] - 12'h d01 : inv_diff_hi[11:0];
+wire [23:0] inv_recovered = {inv_recovered_hi, inv_recovered_lo};
+
+always @(posedge clk) begin
+    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered !== ntt_shadow.wdata_RAM0) begin
+        if (inv_diff_cnt < 8)
+            $display("[INV_BROKEN t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h | m.dmux={%h,%h} m.dmux_m={%h,%h} s.dmux={%h,%h} | m.out0_butt={%h,%h} m.out0_butt_m={%h,%h} m.rdata_acc_r8=%h m.rdata_acc_r8_m=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered, ntt_shadow.wdata_RAM0,
+                ntt.data_mux1, ntt.data_mux0, ntt.data_mux1_m, ntt.data_mux0_m,
+                ntt_shadow.data_mux1, ntt_shadow.data_mux0,
+                ntt.out0_butt[23:12], ntt.out0_butt[11:0],
+                ntt.out0_butt_m[23:12], ntt.out0_butt_m[11:0],
+                ntt.rdata_acc_r8, ntt.rdata_acc_r8_m);
+        if (!invariant_broken) begin
+            $display("[INV_FIRST_BREAK t=%0t state_r13=%h state_r3=%h state=%h]",
+                $time, ntt.state_r13, ntt.state_r3, ntt.state);
+            invariant_broken <= 1'b1;
+        end
+        inv_diff_cnt <= inv_diff_cnt + 1;
     end
 end
 hash_core_Server hash(
