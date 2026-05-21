@@ -7,23 +7,24 @@
   **** SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
   **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
   **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-  **** Start of session at: Thu Apr  9 09:50:50 2026
+  **** Start of session at: Mon May  4 17:45:33 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 
 source fifo_generator_2.tcl -notrace
-Command: synth_design -top fifo_generator_2 -part xc7a12tcpg238-1 -incremental_mode off -mode out_of_context
+create_project: Time (s): cpu = 00:00:18 ; elapsed = 00:00:06 . Memory (MB): peak = 1636.184 ; gain = 196.148 ; free physical = 1585 ; free virtual = 66519
+Command: synth_design -top fifo_generator_2 -part xc7a35tcsg324-1 -incremental_mode off -mode out_of_context
 Starting synth_design
-Attempting to get a license for feature 'Synthesis' and/or device 'xc7a12t'
-INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a12t'
-INFO: [Device 21-403] Loading part xc7a12tcpg238-1
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tcsg324-1
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 601519
+INFO: [Synth 8-7075] Helper process launched with PID 127597
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:09 . Memory (MB): peak = 2184.613 ; gain = 482.273 ; free physical = 2600 ; free virtual = 49491
+Starting RTL Elaboration : Time (s): cpu = 00:00:11 ; elapsed = 00:00:12 . Memory (MB): peak = 2194.738 ; gain = 480.156 ; free physical = 284 ; free virtual = 60294
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-638] synthesizing module 'fifo_generator_2' [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:72]
+INFO: [Synth 8-638] synthesizing module 'fifo_generator_2' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:72]
 	Parameter C_COMMON_CLOCK bound to: 1 - type: integer 
 	Parameter C_SELECT_XPM bound to: 0 - type: integer 
 	Parameter C_COUNT_TYPE bound to: 0 - type: integer 
@@ -226,8 +227,8 @@ INFO: [Synth 8-638] synthesizing module 'fifo_generator_2' [/home/lincoln/Docume
 	Parameter C_REG_SLICE_MODE_RACH bound to: 0 - type: integer 
 	Parameter C_REG_SLICE_MODE_RDCH bound to: 0 - type: integer 
 	Parameter C_REG_SLICE_MODE_AXIS bound to: 0 - type: integer 
-INFO: [Synth 8-3491] module 'fifo_generator_v13_2_14' declared at '/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/hdl/fifo_generator_v13_2_vhsyn_rfs.vhd:38308' bound to instance 'U0' of component 'fifo_generator_v13_2_14' [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:544]
-INFO: [Synth 8-256] done synthesizing module 'fifo_generator_2' (0#1) [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:72]
+INFO: [Synth 8-3491] module 'fifo_generator_v13_2_14' declared at '/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/hdl/fifo_generator_v13_2_vhsyn_rfs.vhd:38308' bound to instance 'U0' of component 'fifo_generator_v13_2_14' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:544]
+INFO: [Synth 8-256] done synthesizing module 'fifo_generator_2' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/synth/fifo_generator_2.vhd:72]
 INFO: [Synth 8-7129] Port ALMOST_FULL_I in module output_blk is either unconnected or has no load
 INFO: [Synth 8-7129] Port PROG_FULL_I in module output_blk is either unconnected or has no load
 INFO: [Synth 8-7129] Port ALMOST_EMPTY_I in module output_blk is either unconnected or has no load
@@ -330,54 +331,54 @@ INFO: [Synth 8-7129] Port WR_PNTR_PLUS1_RD[4] in module rd_logic is either uncon
 INFO: [Synth 8-7129] Port WR_PNTR_PLUS1_RD[3] in module rd_logic is either unconnected or has no load
 INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:12 ; elapsed = 00:00:14 . Memory (MB): peak = 2377.551 ; gain = 675.211 ; free physical = 2411 ; free virtual = 49449
+Finished RTL Elaboration : Time (s): cpu = 00:00:16 ; elapsed = 00:00:18 . Memory (MB): peak = 2387.676 ; gain = 673.094 ; free physical = 294 ; free virtual = 58956
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:12 ; elapsed = 00:00:14 . Memory (MB): peak = 2377.551 ; gain = 675.211 ; free physical = 2411 ; free virtual = 49450
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:16 ; elapsed = 00:00:19 . Memory (MB): peak = 2387.676 ; gain = 673.094 ; free physical = 276 ; free virtual = 58938
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:14 . Memory (MB): peak = 2377.551 ; gain = 675.211 ; free physical = 2412 ; free virtual = 49450
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:16 ; elapsed = 00:00:19 . Memory (MB): peak = 2387.676 ; gain = 673.094 ; free physical = 276 ; free virtual = 58938
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2377.551 ; gain = 0.000 ; free physical = 2409 ; free virtual = 49447
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2387.676 ; gain = 0.000 ; free physical = 267 ; free virtual = 58929
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
 Initializing timing engine
-Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc] for cell 'U0'
-Finished Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc] for cell 'U0'
-Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc] for cell 'U0'
-Finished Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc] for cell 'U0'
-Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/dont_touch.xdc]
-Finished Parsing XDC File [/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/dont_touch.xdc]
+Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc] for cell 'U0'
+Finished Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2_ooc.xdc] for cell 'U0'
+Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc] for cell 'U0'
+Finished Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/fifo_generator_2/fifo_generator_2.xdc] for cell 'U0'
+Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/dont_touch.xdc]
+Finished Parsing XDC File [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/dont_touch.xdc]
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2429.445 ; gain = 0.000 ; free physical = 2234 ; free virtual = 49278
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2427.695 ; gain = 0.000 ; free physical = 265 ; free virtual = 58886
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00.03 ; elapsed = 00:00:00.02 . Memory (MB): peak = 2429.480 ; gain = 0.000 ; free physical = 2220 ; free virtual = 49265
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.03 ; elapsed = 00:00:00.05 . Memory (MB): peak = 2427.730 ; gain = 0.000 ; free physical = 265 ; free virtual = 58886
 INFO: [Designutils 20-5008] Incremental synthesis strategy off
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:19 ; elapsed = 00:00:22 . Memory (MB): peak = 2429.480 ; gain = 727.141 ; free physical = 1421 ; free virtual = 48491
+Finished Constraint Validation : Time (s): cpu = 00:00:27 ; elapsed = 00:00:29 . Memory (MB): peak = 2427.730 ; gain = 713.148 ; free physical = 281 ; free virtual = 58882
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
-Loading part: xc7a12tcpg238-1
+Loading part: xc7a35tcsg324-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:19 ; elapsed = 00:00:22 . Memory (MB): peak = 2437.449 ; gain = 735.109 ; free physical = 1420 ; free virtual = 48490
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:27 ; elapsed = 00:00:29 . Memory (MB): peak = 2435.699 ; gain = 721.117 ; free physical = 281 ; free virtual = 58882
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:19 ; elapsed = 00:00:22 . Memory (MB): peak = 2437.449 ; gain = 735.109 ; free physical = 1419 ; free virtual = 48490
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:27 ; elapsed = 00:00:29 . Memory (MB): peak = 2435.699 ; gain = 721.117 ; free physical = 281 ; free virtual = 58884
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:20 ; elapsed = 00:00:22 . Memory (MB): peak = 2437.449 ; gain = 735.109 ; free physical = 1290 ; free virtual = 48364
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:27 ; elapsed = 00:00:30 . Memory (MB): peak = 2435.699 ; gain = 721.117 ; free physical = 276 ; free virtual = 58883
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
@@ -389,8 +390,8 @@ Finished RTL Component Statistics
 Start Part Resource Summary
 ---------------------------------------------------------------------------------
 Part Resources:
-DSPs: 40 (col length:40)
-BRAMs: 40 (col length: RAMB18 40 RAMB36 20)
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
 ---------------------------------------------------------------------------------
 Finished Part Resource Summary
 ---------------------------------------------------------------------------------
@@ -398,25 +399,25 @@ Finished Part Resource Summary
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 2437.449 ; gain = 735.109 ; free physical = 1117 ; free virtual = 48166
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 2435.699 ; gain = 721.117 ; free physical = 263 ; free virtual = 58875
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:26 ; elapsed = 00:00:28 . Memory (MB): peak = 2456.449 ; gain = 754.109 ; free physical = 522 ; free virtual = 47543
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:36 ; elapsed = 00:00:39 . Memory (MB): peak = 2466.699 ; gain = 752.117 ; free physical = 248 ; free virtual = 58648
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:26 ; elapsed = 00:00:29 . Memory (MB): peak = 2486.496 ; gain = 784.156 ; free physical = 484 ; free virtual = 47504
+Finished Timing Optimization : Time (s): cpu = 00:00:36 ; elapsed = 00:00:39 . Memory (MB): peak = 2496.746 ; gain = 782.164 ; free physical = 267 ; free virtual = 58562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:26 ; elapsed = 00:00:29 . Memory (MB): peak = 2487.504 ; gain = 785.164 ; free physical = 470 ; free virtual = 47490
+Finished Technology Mapping : Time (s): cpu = 00:00:37 ; elapsed = 00:00:39 . Memory (MB): peak = 2497.754 ; gain = 783.172 ; free physical = 295 ; free virtual = 58538
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -434,37 +435,37 @@ Start Final Netlist Cleanup
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1755 ; free virtual = 48656
+Finished IO Insertion : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 369 ; free virtual = 57525
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1755 ; free virtual = 48656
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 369 ; free virtual = 57525
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1755 ; free virtual = 48656
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 419 ; free virtual = 57575
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1756 ; free virtual = 48657
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 435 ; free virtual = 57591
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1756 ; free virtual = 48657
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 458 ; free virtual = 57614
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1756 ; free virtual = 48657
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 460 ; free virtual = 57616
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -491,18 +492,18 @@ Report Cell Usage:
 |9     |FDSE   |     4|
 +------+-------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.316 ; gain = 951.977 ; free physical = 1756 ; free virtual = 48657
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.566 ; gain = 949.984 ; free physical = 469 ; free virtual = 57625
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:28 ; elapsed = 00:00:30 . Memory (MB): peak = 2654.316 ; gain = 900.047 ; free physical = 1735 ; free virtual = 48632
-Synthesis Optimization Complete : Time (s): cpu = 00:00:30 ; elapsed = 00:00:32 . Memory (MB): peak = 2654.324 ; gain = 951.977 ; free physical = 1735 ; free virtual = 48632
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:40 ; elapsed = 00:00:42 . Memory (MB): peak = 2664.566 ; gain = 909.930 ; free physical = 507 ; free virtual = 57663
+Synthesis Optimization Complete : Time (s): cpu = 00:00:42 ; elapsed = 00:00:45 . Memory (MB): peak = 2664.574 ; gain = 949.984 ; free physical = 507 ; free virtual = 57663
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 2654.324 ; gain = 0.000 ; free physical = 1746 ; free virtual = 48645
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2664.574 ; gain = 0.000 ; free physical = 674 ; free virtual = 57830
 INFO: [Netlist 29-17] Analyzing 22 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2710.344 ; gain = 0.000 ; free physical = 3105 ; free virtual = 50078
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2720.594 ; gain = 0.000 ; free physical = 827 ; free virtual = 57988
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 22 instances were transformed.
   RAM64M => RAM64M (RAMD64E(x4)): 22 instances
@@ -511,14 +512,14 @@ Synth Design complete | Checksum: e927072b
 INFO: [Common 17-83] Releasing license: Synthesis
 119 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:38 ; elapsed = 00:00:36 . Memory (MB): peak = 2710.379 ; gain = 1098.336 ; free physical = 3020 ; free virtual = 49995
-INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1645.912; main = 1571.748; forked = 189.982
-INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3534.902; main = 2710.348; forked = 988.395
-Write ShapeDB Complete: Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 2734.355 ; gain = 0.000 ; free physical = 3007 ; free virtual = 49991
-INFO: [Common 17-1381] The checkpoint '/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/fifo_generator_2.dcp' has been generated.
-INFO: [Coretcl 2-1648] Added synthesis output to IP cache for IP fifo_generator_2, cache-ID = 02327bc052deb3cc
+synth_design: Time (s): cpu = 00:00:54 ; elapsed = 00:00:51 . Memory (MB): peak = 2720.629 ; gain = 1084.445 ; free physical = 993 ; free virtual = 58154
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1598.871; main = 1560.232; forked = 187.715
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3496.648; main = 2720.598; forked = 988.891
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2744.605 ; gain = 0.000 ; free physical = 993 ; free virtual = 58155
+INFO: [Common 17-1381] The checkpoint '/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/fifo_generator_2.dcp' has been generated.
+INFO: [Coretcl 2-1648] Added synthesis output to IP cache for IP fifo_generator_2, cache-ID = c9dcb2db812fbab0
 INFO: [Coretcl 2-1174] Renamed 13 cell refs.
-Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2734.355 ; gain = 0.000 ; free physical = 2803 ; free virtual = 49808
-INFO: [Common 17-1381] The checkpoint '/home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/fifo_generator_2.dcp' has been generated.
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2744.605 ; gain = 0.000 ; free physical = 1288 ; free virtual = 58449
+INFO: [Common 17-1381] The checkpoint '/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/fifo_generator_2_synth_1/fifo_generator_2.dcp' has been generated.
 INFO: [Vivado 12-24828] Executing command : report_utilization -file fifo_generator_2_utilization_synth.rpt -pb fifo_generator_2_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Thu Apr  9 09:51:35 2026...
+INFO: [Common 17-206] Exiting Vivado at Mon May  4 17:46:37 2026...

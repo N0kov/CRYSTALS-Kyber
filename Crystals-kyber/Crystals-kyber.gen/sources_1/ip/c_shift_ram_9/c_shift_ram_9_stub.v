@@ -2,19 +2,19 @@
 // Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-// Date        : Thu Apr  9 09:50:07 2026
+// Date        : Mon May  4 17:47:33 2026
 // Host        : xanadu running 64-bit Manjaro Linux
-// Command     : write_verilog -force -mode synth_stub -rename_top c_shift_ram_9 -prefix
-//               c_shift_ram_9_ c_shift_ram_0_stub.v
-// Design      : c_shift_ram_0
+// Command     : write_verilog -force -mode synth_stub
+//               /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_9/c_shift_ram_9_stub.v
+// Design      : c_shift_ram_9
 // Purpose     : Stub declaration of top-level module interface
-// Device      : xc7a12tcpg238-1
+// Device      : xc7a35tcsg324-1
 // --------------------------------------------------------------------------------
 
 // This empty module with port declaration file causes synthesis tools to infer a black box for IP.
 // The synthesis directives are for Synopsys Synplify support to prevent IO buffer insertion.
 // Please paste the declaration into a Verilog source file or add the file as an additional source.
-(* CHECK_LICENSE_TYPE = "c_shift_ram_0,c_shift_ram_v12_0_20,{}" *) (* core_generation_info = "c_shift_ram_0,c_shift_ram_v12_0_20,{x_ipProduct=Vivado 2025.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=c_shift_ram,x_ipVersion=12.0,x_ipCoreRevision=20,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_XDEVICEFAMILY=artix7,C_VERBOSITY=0,C_WIDTH=12,C_DEPTH=5,C_ADDR_WIDTH=4,C_SHIFT_TYPE=0,C_OPT_GOAL=0,C_AINIT_VAL=000000000000,C_SINIT_VAL=000000000000,C_DEFAULT_DATA=000000000000,C_HAS_A=0,C_HAS_CE=0,C_REG_LAST_BIT=1,C_SYNC_PRIORITY=1,C_SYNC_ENABLE=0,C_HAS_SCLR=0,C_HAS_SSET=0,C_HAS_SINIT=0,C_MEM_INIT_FILE=no_coe_file_loaded,C_ELABORATION_DIR=./,C_READ_MIF=0,C_PARSER_TYPE=0}" *) (* downgradeipidentifiedwarnings = "yes" *) 
+(* CHECK_LICENSE_TYPE = "c_shift_ram_9,c_shift_ram_v12_0_20,{}" *) (* core_generation_info = "c_shift_ram_9,c_shift_ram_v12_0_20,{x_ipProduct=Vivado 2025.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=c_shift_ram,x_ipVersion=12.0,x_ipCoreRevision=20,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_XDEVICEFAMILY=artix7,C_VERBOSITY=0,C_WIDTH=12,C_DEPTH=5,C_ADDR_WIDTH=4,C_SHIFT_TYPE=0,C_OPT_GOAL=0,C_AINIT_VAL=000000000000,C_SINIT_VAL=000000000000,C_DEFAULT_DATA=000000000000,C_HAS_A=0,C_HAS_CE=0,C_REG_LAST_BIT=1,C_SYNC_PRIORITY=1,C_SYNC_ENABLE=0,C_HAS_SCLR=0,C_HAS_SSET=0,C_HAS_SINIT=0,C_MEM_INIT_FILE=no_coe_file_loaded,C_ELABORATION_DIR=./,C_READ_MIF=0,C_PARSER_TYPE=0}" *) (* downgradeipidentifiedwarnings = "yes" *) 
 (* x_core_info = "c_shift_ram_v12_0_20,Vivado 2025.2" *) 
 module c_shift_ram_9(D, CLK, Q)
 /* synthesis syn_black_box black_box_pad_pin="D[11:0],Q[11:0]" */

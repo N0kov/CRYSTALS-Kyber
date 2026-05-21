@@ -1,0 +1,50 @@
+`timescale 1ns / 1ps
+// Phase 0 of plan_masked_ntt_option1.md: scaffold for Compute-in-masked-form
+// masked NTT. This file is currently a VERBATIM copy of Kyber_top.v, with
+// only the module name and the Server/Client instantiations renamed to
+// the *_masked variants. Functional behavior is identical. Phase 2-3 will
+// introduce the actual masking (the _masked Server/Client will instantiate
+// NTT_core_Server_masked / NTT_core_Client_masked instead of the unmasked
+// versions). Until then this file exists only to validate the scaffold.
+module Kyber_top_masked #(
+    parameter D_SEED = 256'h 2D7F73369973CD2D0348B1CC251AD82FDD1A6BDBE4106D0CAA9476B0A035997C,
+    parameter M_SEED = 256'h 157699F676FE09CC74A8A9A379FE0EC8137F4D87E1FAC806A4BBBEA5F7037C14
+)(
+    input clk, rst, start,
+    input [2:0] k,
+    output ready_pk, ready_c,
+    output req_pk, req_c,
+    output valid_server, valid_client,
+    output [31:0] dout_server, dout_client
+);
+
+Kyber_Server_masked #(.D_SEED(D_SEED)) S(
+.clk(clk),
+.rst(rst),
+.start(start),
+.wen(valid_client),
+.k(k),
+.din(dout_client),
+.ready_pk(ready_pk),
+.ready_c(ready_c),
+.req_pk(req_pk),
+.req_c(req_c),
+.valid(valid_server),
+.dout(dout_server)
+);
+Kyber_Client_masked #(.M_SEED(M_SEED)) C(
+.clk(clk),
+.rst(rst),
+.start(start),
+.wen(valid_server),
+.k(k),
+.din(dout_server),
+.ready_pk(ready_pk),
+.ready_c(ready_c),
+.req_pk(req_pk),
+.req_c(req_c),
+.valid(valid_client),
+.dout(dout_client)
+);
+
+endmodule

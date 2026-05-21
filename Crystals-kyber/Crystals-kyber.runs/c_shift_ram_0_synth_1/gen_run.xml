@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="c_shift_ram_0_synth_1" LaunchPart="xc7a12tcpg238-1" LaunchTime="1775753373">
+<GenRun Id="c_shift_ram_0_synth_1" LaunchPart="xc7a35tcsg324-1" LaunchTime="1777941928">
   <File Type="RDS-DCP" Name="c_shift_ram_0.dcp"/>
   <File Type="RDS-RDS" Name="c_shift_ram_0.vds"/>
   <File Type="REPORTS-TCL" Name="c_shift_ram_0_reports.tcl"/>
@@ -34,6 +34,22 @@
   </FileSet>
   <FileSet Name="utils" Type="Utils" RelSrcDir="$PSRCDIR/utils_1" RelGenDir="$PGENDIR/utils_1">
     <Filter Type="Utils"/>
+    <File Path="$PSRCDIR/utils_1/imports/synth_2/Kyber_Client.dcp">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedInSteps" Val="synth_2"/>
+        <Attr Name="AutoDcp" Val="1"/>
+      </FileInfo>
+    </File>
+    <File Path="$PSRCDIR/utils_1/imports/synth_1/Kyber_Client.dcp">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedInSteps" Val="synth_1"/>
+        <Attr Name="AutoDcp" Val="1"/>
+      </FileInfo>
+    </File>
     <Config>
       <Option Name="TopAutoSet" Val="TRUE"/>
     </Config>

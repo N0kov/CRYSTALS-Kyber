@@ -2,13 +2,13 @@
 -- Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
--- Date        : Thu Apr  9 09:50:51 2026
+-- Date        : Mon May  4 17:48:26 2026
 -- Host        : xanadu running 64-bit Manjaro Linux
 -- Command     : write_vhdl -force -mode synth_stub
---               /home/lincoln/Documents/ECE/470/Kyber/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_6/c_shift_ram_6_stub.vhdl
+--               /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.gen/sources_1/ip/c_shift_ram_6/c_shift_ram_6_stub.vhdl
 -- Design      : c_shift_ram_6
 -- Purpose     : Stub declaration of top-level module interface
--- Device      : xc7a12tcpg238-1
+-- Device      : xc7a35tcsg324-1
 -- --------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
