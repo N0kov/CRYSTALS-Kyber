@@ -799,31 +799,102 @@ always @(posedge clk) begin
     //     has broken — log the FIRST cycle this happens.
 end
 
+// =============================================================================
+// SHARE INVARIANT CHECK (Step 0.5 of masked-Kyber security hardening plan)
+//
+// Per-cycle invariant for first-order arithmetic masking mod q=3329:
+//
+//      (primary_share - mask_share) mod q  ==  shadow_unmasked
+//
+// This invariant holds regardless of whether the mask is constant per call
+// (current state) or refreshed per coefficient (Step 1). It survives every
+// step that keeps shares additive over Z_q. It WILL change form at Step 5
+// (compression introduces Boolean shares) — at that point this block needs
+// to be re-derived for the new share semantics.
+//
+// Checked on all three primary RAM write-data paths (RAM0, RAM1 are 24-bit
+// = two 12-bit coefficient halves; RAM2 is 48-bit = four halves).
+//
+// First break is logged with [INV_FIRST_BREAK]; per-cycle breaks (up to 8 of
+// each kind) log [INV_BROKEN_R0/R1/R2]. regression_check.sh greps for any of
+// these tags so an invariant break fails the regression even if the external
+// KAT happens to still match by coincidence.
+// =============================================================================
+
+localparam [12:0] INV_Q = 13'h d01; // Kyber prime q=3329
+
+// Per-half (masked - mask) mod q helper — implemented as a function for reuse
+function automatic [11:0] inv_recover_half(
+    input [11:0] primary,
+    input [11:0] mask
+);
+    reg [12:0] diff;
+    begin
+        diff = {1'b0, primary} + INV_Q - {1'b0, mask};
+        inv_recover_half = (diff >= INV_Q) ? diff[11:0] - INV_Q[11:0] : diff[11:0];
+    end
+endfunction
+
+// Recovered values for the three RAM wdata paths
+wire [23:0] inv_recovered_R0 = {
+    inv_recover_half(ntt.wdata_RAM0[23:12], ntt.wdata_RAM0_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM0[11: 0], ntt.wdata_RAM0_m[11: 0])
+};
+wire [23:0] inv_recovered_R1 = {
+    inv_recover_half(ntt.wdata_RAM1[23:12], ntt.wdata_RAM1_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM1[11: 0], ntt.wdata_RAM1_m[11: 0])
+};
+wire [47:0] inv_recovered_R2 = {
+    inv_recover_half(ntt.wdata_RAM2[47:36], ntt.wdata_RAM2_m[47:36]),
+    inv_recover_half(ntt.wdata_RAM2[35:24], ntt.wdata_RAM2_m[35:24]),
+    inv_recover_half(ntt.wdata_RAM2[23:12], ntt.wdata_RAM2_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM2[11: 0], ntt.wdata_RAM2_m[11: 0])
+};
+
 reg invariant_broken = 1'b0;
-integer inv_diff_cnt = 0;
-// Per-half diff: (masked - mask) mod Q
-wire [12:0] inv_diff_lo = {1'b0, ntt.wdata_RAM0[11:0]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[11:0]};
-wire [11:0] inv_recovered_lo = (inv_diff_lo >= 13'h d01) ? inv_diff_lo[11:0] - 12'h d01 : inv_diff_lo[11:0];
-wire [12:0] inv_diff_hi = {1'b0, ntt.wdata_RAM0[23:12]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[23:12]};
-wire [11:0] inv_recovered_hi = (inv_diff_hi >= 13'h d01) ? inv_diff_hi[11:0] - 12'h d01 : inv_diff_hi[11:0];
-wire [23:0] inv_recovered = {inv_recovered_hi, inv_recovered_lo};
+integer inv_diff_cnt_R0 = 0;
+integer inv_diff_cnt_R1 = 0;
+integer inv_diff_cnt_R2 = 0;
 
 always @(posedge clk) begin
-    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered !== ntt_shadow.wdata_RAM0) begin
-        if (inv_diff_cnt < 8)
-            $display("[INV_BROKEN t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h | m.dmux={%h,%h} m.dmux_m={%h,%h} s.dmux={%h,%h} | m.out0_butt={%h,%h} m.out0_butt_m={%h,%h} m.rdata_acc_r8=%h m.rdata_acc_r8_m=%h",
-                $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered, ntt_shadow.wdata_RAM0,
-                ntt.data_mux1, ntt.data_mux0, ntt.data_mux1_m, ntt.data_mux0_m,
-                ntt_shadow.data_mux1, ntt_shadow.data_mux0,
-                ntt.out0_butt[23:12], ntt.out0_butt[11:0],
-                ntt.out0_butt_m[23:12], ntt.out0_butt_m[11:0],
-                ntt.rdata_acc_r8, ntt.rdata_acc_r8_m);
+    // RAM0 write-data invariant
+    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered_R0 !== ntt_shadow.wdata_RAM0) begin
+        if (inv_diff_cnt_R0 < 8)
+            $display("[INV_BROKEN_R0 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered_R0, ntt_shadow.wdata_RAM0);
         if (!invariant_broken) begin
-            $display("[INV_FIRST_BREAK t=%0t state_r13=%h state_r3=%h state=%h]",
+            $display("[INV_FIRST_BREAK_R0 t=%0t state_r13=%h state_r3=%h state=%h]",
                 $time, ntt.state_r13, ntt.state_r3, ntt.state);
             invariant_broken <= 1'b1;
         end
-        inv_diff_cnt <= inv_diff_cnt + 1;
+        inv_diff_cnt_R0 <= inv_diff_cnt_R0 + 1;
+    end
+
+    // RAM1 write-data invariant
+    if (ntt.wen_RAM1 && ntt_shadow.wen_RAM1 && inv_recovered_R1 !== ntt_shadow.wdata_RAM1) begin
+        if (inv_diff_cnt_R1 < 8)
+            $display("[INV_BROKEN_R1 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM1, ntt.wdata_RAM1_m, inv_recovered_R1, ntt_shadow.wdata_RAM1);
+        if (!invariant_broken) begin
+            $display("[INV_FIRST_BREAK_R1 t=%0t state_r13=%h state_r3=%h state=%h]",
+                $time, ntt.state_r13, ntt.state_r3, ntt.state);
+            invariant_broken <= 1'b1;
+        end
+        inv_diff_cnt_R1 <= inv_diff_cnt_R1 + 1;
+    end
+
+    // RAM2 write-data invariant (48-bit, four 12-bit halves)
+    if ((ntt.wen_RAM2 || ntt.wen_RAM3) && (ntt_shadow.wen_RAM2 || ntt_shadow.wen_RAM3) &&
+        inv_recovered_R2 !== ntt_shadow.wdata_RAM2) begin
+        if (inv_diff_cnt_R2 < 8)
+            $display("[INV_BROKEN_R2 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM2, ntt.wdata_RAM2_m, inv_recovered_R2, ntt_shadow.wdata_RAM2);
+        if (!invariant_broken) begin
+            $display("[INV_FIRST_BREAK_R2 t=%0t state_r13=%h state_r3=%h state=%h]",
+                $time, ntt.state_r13, ntt.state_r3, ntt.state);
+            invariant_broken <= 1'b1;
+        end
+        inv_diff_cnt_R2 <= inv_diff_cnt_R2 + 1;
     end
 end
 hash_core_Server hash(
