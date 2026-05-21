@@ -58,6 +58,7 @@ verilog xil_defaultlib  --include "../../../../../../../home/lincoln/2025.2/data
 sv xil_defaultlib  --include "../../../../../../../home/lincoln/2025.2/data/rsb/busdef" \
 "../../../../Crystals-kyber.srcs/new_hardware/mask_csprng.sv" \
 "../../../../Crystals-kyber.srcs/new_hardware/mask_polyfifo.sv" \
+"../../../../Crystals-kyber.srcs/new_hardware/mask_polyfifo_x4.sv" \
 
 # compile glbl module
 verilog xil_defaultlib "glbl.v"

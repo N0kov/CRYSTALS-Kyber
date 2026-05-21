@@ -60,11 +60,10 @@ wire [10:0] quo0_butt_m, quo1_butt_m;
 wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
-// Stage 2 mask source (constant polynomial mask).
-wire [11:0] mask_const_real;
-// Phase 2 Stage C: real CSPRNG mask enabled. Was forced to 12'h0 during
-// Gate 1 architecture validation; now uses mask_polyfifo's mask_const_real.
-wire [11:0] mask_const = mask_const_real;
+// Step 1 (per-coefficient masking): 4-way mask source matching the Server.
+// See NTT_core_Server_masked.v ~line 88 for the design rationale.
+wire [11:0] mask_for_samp0, mask_for_samp1, mask_for_samp2, mask_for_samp3;
+wire [11:0] mask_const = mask_for_samp0;  // legacy alias for any debug code
 wire        mask_ready;
 reg         start_d1;
 always @(posedge clk) begin
@@ -73,20 +72,35 @@ always @(posedge clk) begin
 end
 wire        ntt_call_start_pulse = start & ~start_d1;
 
-(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo #(.USE_TRNG(0), .SEED_VAL(32'hFEEDFACE)) u_mask (
-    .clk_i             (clk),
-    .reset_i           (~rst),
-    .avalanche_noise_i (1'b0),
-    .ntt_call_start    (ntt_call_start_pulse),
-    .ready             (mask_ready),
-    .mask_out          (mask_const_real)
+// Pulse req at every Client sampling-state cycle. Client sampling state_r13
+// values: 5'h 1e/1f for wdata_RAM0/1 sampling, 5'h a/b/14/15 for wdata_RAM2.
+wire        req_x4_sampling =
+       (state_r13 == 5'h 1e) | (state_r13 == 5'h 1f)
+     | (state_r13 == 5'h  a) | (state_r13 == 5'h  b)
+     | (state_r13 == 5'h 14) | (state_r13 == 5'h 15);
+
+(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo_x4 #(
+    .SEED0 (32'hFEEDFACE),
+    .SEED1 (32'h5A5A5A5A),
+    .SEED2 (32'hA5A5A5A5),
+    .SEED3 (32'h13371337)
+) u_mask (
+    .clk_i           (clk),
+    .reset_i         (~rst),
+    .ntt_call_start  (ntt_call_start_pulse),
+    .req             (req_x4_sampling),
+    .valid           (mask_ready),
+    .mask0           (mask_for_samp0),
+    .mask1           (mask_for_samp1),
+    .mask2           (mask_for_samp2),
+    .mask3           (mask_for_samp3)
 );
 
-// Mask-add for sampling (Stage 2 injection)
-wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_const};
-wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_const};
-wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_const};
-wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_const};
+// Mask-add for sampling (Step 1: per-sample masks)
+wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_for_samp0};
+wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_for_samp1};
+wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_for_samp2};
+wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_for_samp3};
 wire [11:0] samp0_masked = (samp0_plus >= 13'h d01) ? samp0_plus[11:0] - 12'h d01 : samp0_plus[11:0];
 wire [11:0] samp1_masked = (samp1_plus >= 13'h d01) ? samp1_plus[11:0] - 12'h d01 : samp1_plus[11:0];
 wire [11:0] samp2_masked = (samp2_plus >= 13'h d01) ? samp2_plus[11:0] - 12'h d01 : samp2_plus[11:0];
@@ -736,9 +750,10 @@ endcase
 //   default                          : out0_butt_r1, out1_butt_r1
 always @(*) case(state_r13)
     5'h 1e, 5'h 1f : begin
-        // Sampling: primary writes samp_masked; mask writes mask_const
-        wdata_RAM0_m = {mask_const, mask_const};
-        wdata_RAM1_m = {mask_const, mask_const};
+        // Step 1: each lane gets its own fresh mask; layout matches primary's
+        // {samp1_masked, samp0_masked} / {samp3_masked, samp2_masked}.
+        wdata_RAM0_m = {mask_for_samp1, mask_for_samp0};
+        wdata_RAM1_m = {mask_for_samp3, mask_for_samp2};
     end
     4'h 2, 4'h a, 5'h 14 : begin
         wdata_RAM0_m = out0_butt_r1_m;
@@ -778,7 +793,8 @@ endcase
 
 always @(*) case(state_r13)
     5'h a, 5'h b, 5'h 14, 5'h 15 :
-        wdata_RAM2_m = {mask_const, mask_const, mask_const, mask_const};
+        // Step 1: 48-bit mask matches primary's {samp3..samp0}_masked layout.
+        wdata_RAM2_m = {mask_for_samp3, mask_for_samp2, mask_for_samp1, mask_for_samp0};
     default :
         wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
 endcase

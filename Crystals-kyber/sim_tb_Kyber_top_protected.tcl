@@ -40,6 +40,7 @@ set files_to_add [list \
     [file join $NH_DIR   "rng.sv"] \
     [file join $NH_DIR   "mask_csprng.sv"] \
     [file join $NH_DIR   "mask_polyfifo.sv"] \
+    [file join $NH_DIR   "mask_polyfifo_x4.sv"] \
     [file join $NH_DIR   "rand_clk_gen.sv"] \
     [file join $SRC_IMP  "imports/_to_32bits.v"] \
     [file join $SRC_IMP  "imports/decode_Client.v"] \

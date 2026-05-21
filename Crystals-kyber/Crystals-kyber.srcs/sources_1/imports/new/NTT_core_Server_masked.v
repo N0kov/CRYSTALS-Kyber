@@ -85,13 +85,19 @@ wire [11:0] decomp0_butt_m, decomp1_butt_m;
 wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
-// Stage 2 mask source: latch a single 12-bit mask at start of each NTT call,
-// hold steady for the rest of the call (constant polynomial mask). Stage 3
-// will replace this with per-coefficient mask (256 unique values).
-wire [11:0] mask_const_real;
-// Phase 2 Stage C: real CSPRNG mask enabled. Was forced to 12'h0 during
-// Gate 1 architecture validation; now uses mask_polyfifo's mask_const_real.
-wire [11:0] mask_const = mask_const_real;
+// Step 1 (per-coefficient masking): replace single-mask polyfifo with the
+// 4-way mask_polyfifo_x4, which emits four fresh, independent uniform-mod-Q
+// 12-bit masks per cycle. Each sampling cycle (state_r13 in the sampling
+// set below) pulses req to advance the per-lane FIFOs by one. The four
+// masks consumed at sampling-state cycle T are used:
+//   - lane 0 (mask_for_samp0) → samp0_masked + wdata_RAM*_m[ 11: 0]
+//   - lane 1 (mask_for_samp1) → samp1_masked + wdata_RAM*_m[23:12]
+//   - lane 2 (mask_for_samp2) → samp2_masked + wdata_RAM2_m[35:24]
+//   - lane 3 (mask_for_samp3) → samp3_masked + wdata_RAM2_m[47:36]
+wire [11:0] mask_for_samp0, mask_for_samp1, mask_for_samp2, mask_for_samp3;
+// Legacy alias kept for any straggler debug code that still references
+// `mask_const`. New code must use the per-sample mask wires above.
+wire [11:0] mask_const = mask_for_samp0;
 wire        mask_ready;
 // Single-cycle ntt_call_start pulse on rising edge of `start`.
 reg         start_d1;
@@ -101,13 +107,30 @@ always @(posedge clk) begin
 end
 wire        ntt_call_start_pulse = start & ~start_d1;
 
-(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo #(.USE_TRNG(0), .SEED_VAL(32'hCAFEBABE)) u_mask (
-    .clk_i             (clk),
-    .reset_i           (~rst),                  // mask_polyfifo uses active-low reset
-    .avalanche_noise_i (1'b0),
-    .ntt_call_start    (ntt_call_start_pulse),
-    .ready             (mask_ready),
-    .mask_out          (mask_const_real)
+// req_x4_sampling: high at every state_r13 cycle that writes a freshly-sampled
+// coefficient to a RAM_m mask-side location. Mirrors the case-labels in the
+// wdata_RAM*_m blocks below (lines ~1071-1140). 10 states total.
+wire        req_x4_sampling =
+       (state_r13 == 6'h 20) | (state_r13 == 6'h 21) | (state_r13 == 6'h 22)
+     | (state_r13 == 6'h 23) | (state_r13 == 6'h 3e) | (state_r13 == 6'h 3f)
+     | (state_r13 == 6'h 2a) | (state_r13 == 6'h 2b)
+     | (state_r13 == 6'h 34) | (state_r13 == 6'h 35);
+
+(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo_x4 #(
+    .SEED0 (32'hCAFEBABE),
+    .SEED1 (32'hDEADBEEF),
+    .SEED2 (32'hFEEDFACE),
+    .SEED3 (32'hBAADF00D)
+) u_mask (
+    .clk_i           (clk),
+    .reset_i         (~rst),                 // active-low reset
+    .ntt_call_start  (ntt_call_start_pulse),
+    .req             (req_x4_sampling),
+    .valid           (mask_ready),
+    .mask0           (mask_for_samp0),
+    .mask1           (mask_for_samp1),
+    .mask2           (mask_for_samp2),
+    .mask3           (mask_for_samp3)
 );
 
 reg [7:0] raddr_RAM0;
@@ -654,10 +677,11 @@ endcase
 // (samp + mask_const) mod Q. This is the only place fresh polynomial data
 // enters RAM; all other states write butterfly outputs which are already
 // masked downstream.
-wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_const};
-wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_const};
-wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_const};
-wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_const};
+// Step 1: each of the 4 samples in a cycle uses an independent mask.
+wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_for_samp0};
+wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_for_samp1};
+wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_for_samp2};
+wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_for_samp3};
 wire [11:0] samp0_masked = (samp0_plus >= 13'h d01) ? samp0_plus[11:0] - 12'h d01 : samp0_plus[11:0];
 wire [11:0] samp1_masked = (samp1_plus >= 13'h d01) ? samp1_plus[11:0] - 12'h d01 : samp1_plus[11:0];
 wire [11:0] samp2_masked = (samp2_plus >= 13'h d01) ? samp2_plus[11:0] - 12'h d01 : samp2_plus[11:0];
@@ -1069,9 +1093,11 @@ endcase
 // At decomp/quotient states, mask writes BU_m's decomp/quo retiming.
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
-		// Sampling: primary writes {samp1_q, samp0_q}; mask writes {mask, mask}
-		wdata_RAM0_m = {mask_const, mask_const};
-		wdata_RAM1_m = {mask_const, mask_const};
+		// Step 1: each lane stores its own fresh mask matching the per-sample
+		// mask used by samp{0..3}_masked above. Layout matches primary's
+		// {samp1_masked, samp0_masked} and {samp3_masked, samp2_masked}.
+		wdata_RAM0_m = {mask_for_samp1, mask_for_samp0};
+		wdata_RAM1_m = {mask_for_samp3, mask_for_samp2};
 	end
 	4'h 2, 5'h 7, 5'h 11, 6'h 19, 6'h 2a, 6'h 34 : begin
 		wdata_RAM0_m = out0_butt_r1_m;
@@ -1134,7 +1160,9 @@ always @(*) case(state_r13)
 	// to preserve the share invariant. Stage 2 erroneously grouped 6'h 14/15
 	// with the noise-sampling states.
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 :
-		wdata_RAM2_m = {mask_const, mask_const, mask_const, mask_const};
+		// Step 1: 48-bit mask packs four per-sample masks matching
+		// {samp3_masked, samp2_masked, samp1_masked, samp0_masked} on primary.
+		wdata_RAM2_m = {mask_for_samp3, mask_for_samp2, mask_for_samp1, mask_for_samp0};
 	default :
 		wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
 endcase
