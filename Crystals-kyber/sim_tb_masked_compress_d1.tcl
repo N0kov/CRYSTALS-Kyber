@@ -31,7 +31,8 @@ if {[file exists $PRJ_FILE]} {
     add_files -fileset sources_1 [file join $X2X_TB "PRNG_engine_3SHARE.sv"]
     add_files -fileset sources_1 [file join $X2X_TB "PRNG_engine_STREAM.sv"]
 
-    # Our wrapper
+    # Our wrapper + threshold gadget (v2)
+    add_files -fileset sources_1 [file join $NH_DIR "masked_threshold_compare.sv"]
     add_files -fileset sources_1 [file join $NH_DIR "masked_compress_d1.sv"]
 
     # Testbench

@@ -37,6 +37,7 @@ reg [5:0] next_state, state;
 reg [5:0] state_r1, state_r2, state_r3;
 wire [5:0] state_r13;
 reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4, state_r13_d5;
+reg [5:0] state_r13_d6, state_r13_d7, state_r13_d8;
 reg wen_RAM2_decomp, wen_RAM3_decomp;
 reg [3:0] ctr_NTT;
 reg [1:0] ctr_col, ctr_col_r1;
@@ -132,6 +133,184 @@ wire        req_x4_sampling =
     .mask2           (mask_for_samp2),
     .mask3           (mask_for_samp3)
 );
+
+// =============================================================================
+// Step 3+5 Phase A v1: masked d=1 compression for m_dec (states 0x1d/0x1e).
+//
+// Replaces the leaky butterfly-quotient path with masked_compress_d1, fed
+// arithmetic shares directly from the RAM mux reads. X2X (inside the wrapper)
+// produces Boolean shares of the m_dec bit with 10-cycle pipeline latency,
+// which matches the existing butterfly's state_r3 -> state_r13 alignment.
+//
+// v1 limitations (documented):
+//   - Cleartext threshold inside the wrapper (XOR of Boolean shares) — see
+//     masked_compress_d1.sv header comment. v2 replaces with masked SecAdd
+//     compare.
+//   - Single shared PRNG feeds both lo/hi instances — they reuse randomness.
+//     v2 should use independent PRNGs per half.
+//   - PRNG output is REGISTERED only when prng_done fires (one cycle per
+//     fill), so X2X sees the same randomness for many cycles between fills.
+//     Acceptable for v1 (functional correctness preserved); v2 should use
+//     a streaming PRNG that provides fresh randomness every cycle.
+//
+// Plan reference: plan_masked_ntt_phase3a_design.md
+// =============================================================================
+
+localparam MCD1_PARAM_WIDTH = 13;
+localparam MCD1_N_SHARES    = 2;
+localparam MCD1_N_STAGES    = 4;
+localparam MCD1_RND_SHARES  = 2 * (MCD1_N_SHARES - 1) + 2 * MCD1_N_SHARES
+                              + 4 * (MCD1_N_SHARES * (MCD1_N_SHARES - 1) / 2);
+localparam MCD1_RND_SHARES_8bit = 2 * MCD1_N_STAGES * 3
+                                  * (MCD1_N_SHARES * (MCD1_N_SHARES - 1) / 2);
+localparam MCD1_NB_SEEDS    = 6;
+localparam MCD1_LSFR_WIDTH  = 32;
+
+// Active-low reset for X2X / PRNG (their convention)
+wire mcd1_rst_n = ~rst;
+
+// PRNG: warms up at reset, then continuously refills.
+wire                            mcd1_prng_done;
+reg                             mcd1_prng_update;
+reg                             mcd1_prng_load_seed;
+// Note: unpacked arrays declared as reg/wire so plain Verilog accepts them.
+wire [MCD1_PARAM_WIDTH - 1 : 0] mcd1_rnd_shares_raw      [MCD1_RND_SHARES - 1 : 0];
+wire [7:0]                      mcd1_rnd_shares_8bit_raw [MCD1_RND_SHARES_8bit - 1 : 0];
+reg  [MCD1_PARAM_WIDTH - 1 : 0] mcd1_rnd_shares          [MCD1_RND_SHARES - 1 : 0];
+reg  [7:0]                      mcd1_rnd_shares_8bit     [MCD1_RND_SHARES_8bit - 1 : 0];
+
+// Hold the latest valid randomness across cycles. The PRNG's raw output is
+// zero except when prng_done is high; latch it then so X2X sees stable
+// randomness throughout the m_dec burst.
+integer mcd1_rnd_i;
+always @(posedge clk) begin
+    if (mcd1_prng_done) begin
+        for (mcd1_rnd_i = 0; mcd1_rnd_i < MCD1_RND_SHARES; mcd1_rnd_i = mcd1_rnd_i + 1)
+            mcd1_rnd_shares[mcd1_rnd_i] <= mcd1_rnd_shares_raw[mcd1_rnd_i];
+        for (mcd1_rnd_i = 0; mcd1_rnd_i < MCD1_RND_SHARES_8bit; mcd1_rnd_i = mcd1_rnd_i + 1)
+            mcd1_rnd_shares_8bit[mcd1_rnd_i] <= mcd1_rnd_shares_8bit_raw[mcd1_rnd_i];
+    end
+end
+
+// Drive load_seed once after reset; hold update_rnd high so PRNG continuously
+// refills (one fill ~5-10 cycles, then auto-restart since update_rnd stays high).
+reg mcd1_seed_done;
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        mcd1_seed_done      <= 1'b0;
+        mcd1_prng_load_seed <= 1'b0;
+        mcd1_prng_update    <= 1'b0;
+    end else begin
+        if (!mcd1_seed_done) begin
+            mcd1_prng_load_seed <= 1'b1;
+            mcd1_seed_done      <= 1'b1;
+        end else begin
+            mcd1_prng_load_seed <= 1'b0;
+            mcd1_prng_update    <= 1'b1;
+        end
+    end
+end
+
+PRNG_engine_STREAM #(
+    .PARAM_WIDTH    (MCD1_PARAM_WIDTH),
+    .LSFR_WIDTH     (MCD1_LSFR_WIDTH),
+    .SEED_WIDTH     (MCD1_NB_SEEDS * 128),
+    .N_SHARES       (MCD1_N_SHARES),
+    .RND_SHARES     (MCD1_RND_SHARES),
+    .RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_prng (
+    .clk            (clk),
+    .rst_n          (mcd1_rst_n),
+    .mod_type       (1'b1),         // prime mode
+    .conversion_type(1'b0),         // A2B
+    .dual_mode      (1'b0),         // single conversion at a time
+    .load_seed      (mcd1_prng_load_seed),
+    .update_rnd     (mcd1_prng_update),
+    .prng_done      (mcd1_prng_done),
+    .seed_in        ({MCD1_NB_SEEDS{128'h0123456789ABCDEF_FEDCBA9876543210}}),
+    .rnd_out_8bit   (mcd1_rnd_shares_8bit_raw),
+    .rnd_out        (mcd1_rnd_shares_raw)
+);
+
+// Share-wise differences: d = (c0 - c1) mod Q for each half.
+// Project convention: c0_p - c0_m mod Q = c0; same for c1.
+// Difference share: d_p = (c0_p - c1_p) mod Q, d_m = (c0_m - c1_m) mod Q.
+// Verify: d_p - d_m = (c0_p - c1_p) - (c0_m - c1_m) = c0 - c1 = d.
+function automatic [11:0] mod_q_sub12(input [11:0] a, input [11:0] b);
+    reg [12:0] diff;
+    begin
+        diff = {1'b0, a} + 13'h d01 - {1'b0, b};
+        mod_q_sub12 = (diff >= 13'h d01) ? diff[11:0] - 12'h d01 : diff[11:0];
+    end
+endfunction
+
+wire [11:0] mcd1_d_p_lo = mod_q_sub12(rdata_RAM_mux0_r1  [11:0],  rdata_RAM_mux1_r1  [11:0]);
+wire [11:0] mcd1_d_m_lo = mod_q_sub12(rdata_RAM_mux0_r1_m[11:0],  rdata_RAM_mux1_r1_m[11:0]);
+wire [11:0] mcd1_d_p_hi = mod_q_sub12(rdata_RAM_mux0_r1  [23:12], rdata_RAM_mux1_r1  [23:12]);
+wire [11:0] mcd1_d_m_hi = mod_q_sub12(rdata_RAM_mux0_r1_m[23:12], rdata_RAM_mux1_r1_m[23:12]);
+
+// Valid_data is high whenever state_r3 is one of the m_dec extraction states.
+// Output (valid_result) arrives 10 cycles later, matching state_r13.
+wire mcd1_valid_data = (state_r3 == 6'h 1d) || (state_r3 == 6'h 1e);
+
+wire mcd1_m_p_lo, mcd1_m_m_lo, mcd1_m_p_hi, mcd1_m_m_hi;
+wire mcd1_valid_result_lo, mcd1_valid_result_hi;
+
+(* keep_hierarchy = "TRUE" *) masked_compress_d1 #(
+    .HALFCYCLE          (1),
+    .PARAM_WIDTH        (MCD1_PARAM_WIDTH),
+    .Q                  (13'd3329),
+    .LO                 (13'd833),
+    .HI                 (13'd2497),
+    .N_SHARES           (MCD1_N_SHARES),
+    .N_STAGES           (MCD1_N_STAGES),
+    .X2X_RND_SHARES     (MCD1_RND_SHARES),
+    .X2X_RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_lo (
+    .clk                 (clk),
+    .rst_n               (mcd1_rst_n),
+    .c_p                 (mcd1_d_p_lo),
+    .c_m                 (mcd1_d_m_lo),
+    .valid_data          (mcd1_valid_data),
+    .ready_data          (),                   // back-pressure ignored in streaming
+    .ready_result        (1'b1),
+    .valid_result        (mcd1_valid_result_lo),
+    .m_p_o               (mcd1_m_p_lo),
+    .m_m_o               (mcd1_m_m_lo),
+    .fresh_rnd_shares    (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit)
+);
+
+(* keep_hierarchy = "TRUE" *) masked_compress_d1 #(
+    .HALFCYCLE          (1),
+    .PARAM_WIDTH        (MCD1_PARAM_WIDTH),
+    .Q                  (13'd3329),
+    .LO                 (13'd833),
+    .HI                 (13'd2497),
+    .N_SHARES           (MCD1_N_SHARES),
+    .N_STAGES           (MCD1_N_STAGES),
+    .X2X_RND_SHARES     (MCD1_RND_SHARES),
+    .X2X_RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_hi (
+    .clk                 (clk),
+    .rst_n               (mcd1_rst_n),
+    .c_p                 (mcd1_d_p_hi),
+    .c_m                 (mcd1_d_m_hi),
+    .valid_data          (mcd1_valid_data),
+    .ready_data          (),
+    .ready_result        (1'b1),
+    .valid_result        (mcd1_valid_result_hi),
+    .m_p_o               (mcd1_m_p_hi),
+    .m_m_o               (mcd1_m_m_hi),
+    .fresh_rnd_shares    (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit)
+);
+
+// Cleartext m_dec bits (XOR of Boolean shares — v1 boundary unmask).
+// At v1 these are the bits driven onto the m_dec port and packed into the
+// RAM writeback at state_r13 == 0x1d/0x1e. v2 keeps them shared longer.
+wire mcd1_bit_lo = mcd1_m_p_lo ^ mcd1_m_m_lo;
+wire mcd1_bit_hi = mcd1_m_p_hi ^ mcd1_m_m_hi;
 
 reg [7:0] raddr_RAM0;
 reg [5:0] raddr_RAM1;
@@ -349,11 +528,16 @@ always @(posedge clk) case(state_r3)
 		in0_butt <= rdata_RAM_mux0_r1;
 		in1_butt <= rdata_RAM_mux1_r1;
 	end
-	// Stage 3 unmask: m_dec critical states. Load unmasked polynomial data
-	// so butterfly's quotient compute produces correct (unmasked) m_dec bits.
+	// Step 3+5 Phase A v1: m_dec is now computed by masked_compress_d1
+	// (see PRNG+u_mcd1_lo/u_mcd1_hi instances above). Butterfly's quotient
+	// path is no longer the m_dec source. Load arithmetic-share PRIMARY
+	// values here (not unmasked!) so no cleartext touches in*_butt at these
+	// states. Butterfly's quo*_butt_r1 outputs at state_r13==0x1d/0x1e are
+	// now garbage and ignored — wdata_RAM0/1 below pack the masked_compress
+	// output instead.
 	6'h 1d, 6'h 1e : begin
-		in0_butt <= unmasked_mux0_r1;
-		in1_butt <= unmasked_mux1_r1;
+		in0_butt <= rdata_RAM_mux0_r1;
+		in1_butt <= rdata_RAM_mux1_r1;
 	end
 	5'h f, 5'h 10 : begin
 		in0_butt <= 24'h 0;
@@ -477,6 +661,9 @@ always @(posedge clk) begin
 	state_r13_d3 <= state_r13_d2;
 	state_r13_d4 <= state_r13_d3;
 	state_r13_d5 <= state_r13_d4;
+	state_r13_d6 <= state_r13_d5;
+	state_r13_d7 <= state_r13_d6;
+	state_r13_d8 <= state_r13_d7;
 end
 always @(posedge clk) case(state)
 	6'h 2, 6'h 19 : raddr_RAM0 <= {ctr_NTT[1:0],ctr_j} + ctr_k;
@@ -767,7 +954,15 @@ always @(*) case(state_r13)
 		wdata_RAM0 = {decomp1_butt_r1,decomp0_butt_r1};
 		wdata_RAM1 = {decomp1_butt_r1,decomp0_butt_r1};
 	end
-	6'h 1d, 6'h 1e, 6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
+	// Step 3+5 Phase A v2: write the butterfly's quo (which is garbage since
+	// in_butt loads masked shares now) to preserve the v1 RAM contents
+	// format. Trace says these RAM addresses aren't consumed; testing this
+	// in case the trace missed a downstream reader.
+	6'h 1d, 6'h 1e : begin
+		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
+		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
+	end
+	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
 		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 	end
@@ -852,10 +1047,24 @@ always @(posedge clk) case(state_r1)
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 : req_noise_done <= raddr_RAM2 == 6'h 3f ? 1'h 1 : req_noise_done;
 	6'h 2c, 6'h 38 : req_noise_done <= 1'h 0; 
 endcase
+// Step 3+5 Phase A v2: ena_sft must be delayed by 5 cycles so it doesn't
+// fire while the last 5 cycles of v2's m_dec emission are still writing
+// into `m` (over in Kyber_Server_masked.v). The if-else in the m-update
+// gives ena_sft priority — if ena_sft fires during m_dec, m_dec writes are
+// dropped, corrupting the message and the eventual shared key.
+reg ena_sft_raw;
+reg ena_sft_d1, ena_sft_d2, ena_sft_d3, ena_sft_d4;
 always @(posedge clk) case(state_r3)
-	6'h 36, 6'h 37 : ena_sft <= 1'h 1;
-	default : ena_sft <= 1'h 0;
+	6'h 36, 6'h 37 : ena_sft_raw <= 1'h 1;
+	default : ena_sft_raw <= 1'h 0;
 endcase
+always @(posedge clk) begin
+	ena_sft_d1 <= ena_sft_raw;
+	ena_sft_d2 <= ena_sft_d1;
+	ena_sft_d3 <= ena_sft_d2;
+	ena_sft_d4 <= ena_sft_d3;
+	ena_sft    <= ena_sft_d4;
+end
 always @(*) case(state_r2)
 	5'h b, 6'h 26 : fifo0_req = 1'h 1;
 	default : fifo0_req = 1'h 0;
@@ -885,10 +1094,12 @@ always @(posedge clk) case(state_r13)
 	default : ready_t <= ready_t;
 endcase
 
-always @(*) case(state_r13)
+always @(*) case(state_r13_d6)
+	// Step 3+5 Phase A v2: v2 wrapper latency = 16 (X2X 10 + SecAdd 5 +
+	// SecAnd 1 with PIPELINE=1 and direct secadd_done → SecAnd.start wire).
 	6'h 1d, 6'h 1e : begin
 		m_ena = 1'h 1;
-		m_dec = {quo1_butt_r1[0],quo0_butt_r1[0]};
+		m_dec = {mcd1_bit_hi, mcd1_bit_lo};
 	end
 	default : begin
 		m_ena = 1'h 0;
@@ -929,7 +1140,8 @@ endcase
 always @(posedge clk) begin
 	if(start)
 		finish <= 1'h 0;
-	else if(state_r13 == 6'h 3a)
+	// Step 3+5 Phase A v2: m_dec gated by state_r13_d6. finish slips by 6.
+	else if(state_r13_d6 == 6'h 3a)
 		finish <= 1'h 1;
 	else
 		finish <= 1'h 0;

@@ -245,6 +245,41 @@ module tb_masked_compress_d1;
         end
 
         // -----------------------------------------------------------------
+        // PART 1b — Explicit c_m = 0 edge tests (added for v2 integration debug)
+        // -----------------------------------------------------------------
+        $display("=== c_m = 0 CASES ===");
+        apply_one(0,    0);
+        apply_one(5,    0);
+        apply_one(LO-1, 0);
+        apply_one(LO,   0);
+        apply_one(1700, 0);
+        apply_one(HI-1, 0);
+        apply_one(HI,   0);
+        apply_one(3000, 0);
+        apply_one(Q-1,  0);
+
+        // -----------------------------------------------------------------
+        // PART 1c — Specific cases from the v2 NTT integration failure log
+        // (DBG_IN entries that produced wrong masked outputs). These force
+        // the integration's actual (c_truth, r) values into the standalone
+        // wrapper to confirm the wrapper-level bug.
+        // -----------------------------------------------------------------
+        $display("=== INTEGRATION REPRO CASES ===");
+        apply_one(3266, 2864);   // DBG_IN #2 hi: c_hi=3266 with mask 2864
+        apply_one(3281, 794);    // DBG_IN #4 hi: c_hi=3281
+        apply_one(3303, 2220);   // DBG_IN #8 hi: c_hi=3303
+        apply_one(3251, 817);    // DBG_IN #7 hi: c_hi=3251
+        apply_one(1745, 1578);   // DBG_IN #0 hi: c_hi=1745 (expected 1)
+        apply_one(1693, 1696);   // DBG_IN #6 hi: c_hi=1693 (expected 1)
+        // LO half failures (all c_m=0)
+        apply_one(3286, 0);      // DBG_IN #0 lo: c_lo=3286 c_m=0 (expected 0)
+        apply_one(1705, 0);      // DBG_IN #4 lo: c_lo=1705 c_m=0 (expected 1)
+        apply_one(1668, 0);      // DBG_IN #5 lo (expected 1)
+        apply_one(1693, 0);      // DBG_IN #6 lo (expected 1)
+        apply_one(1641, 0);      // DBG_IN #7 lo (expected 1)
+        apply_one(3252, 0);      // DBG_IN #14 lo c_lo=3252 c_m=0 (expected 0)
+
+        // -----------------------------------------------------------------
         // PART 2 — Random sweep
         // -----------------------------------------------------------------
         $display("=== RANDOM SWEEP (%0d samples) ===", NUM_RANDOM);

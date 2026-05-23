@@ -688,6 +688,9 @@ integer cmp_w0_diff = 0;
 integer cmp_w1_diff = 0;
 integer cmp_w2_diff = 0;
 integer cmp_m_dec_diff = 0;
+integer dbg_m_ena_cnt = 0;
+integer dbg_s_ena_cnt = 0;
+integer dbg_in_cnt = 0;
 always @(posedge clk) begin
     if (ntt.wen_RAM0 !== ntt_shadow.wen_RAM0) begin
         if (cmp_w0_cnt < 5)
@@ -723,6 +726,76 @@ always @(posedge clk) begin
                 ntt.in0_butt, ntt.in1_butt, ntt.tw_butt,
                 ntt_shadow.in0_butt, ntt_shadow.in1_butt, ntt_shadow.tw_butt);
         cmp_m_dec_diff <= cmp_m_dec_diff + 1;
+    end
+
+    // Phase A v2 instrumentation Round 1: log each m_ena event from BOTH
+    // masked and shadow. Different cycles because v2 has +5 latency, so
+    // capture them independently to compare values across the timeline.
+    // First 16 of each. Look for: do bit values eventually MATCH (just
+    // shifted in time) or are they SYSTEMATICALLY DIFFERENT?
+    if (ntt.m_ena && dbg_m_ena_cnt < 128) begin
+        $display("[DBG_M m_ena #%0d t=%0t] m_dec=%h (mcd1_hi_p=%b mcd1_hi_m=%b mcd1_lo_p=%b mcd1_lo_m=%b) state_r13_d5=%h",
+            dbg_m_ena_cnt, $time, ntt.m_dec,
+            ntt.mcd1_m_p_hi, ntt.mcd1_m_m_hi, ntt.mcd1_m_p_lo, ntt.mcd1_m_m_lo,
+            ntt.state_r13_d5);
+        // Round 3: dump X2X's Boolean share outputs for each instance.
+        // x2x_out_xor SHOULD equal the cleartext c being processed (15 cycles
+        // ago's input). If it doesn't, X2X is the bug.
+        $display("[DBG_M_X2X #%0d] lo_x2x_out=[%h,%h] xor=%0d  hi_x2x_out=[%h,%h] xor=%0d",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_lo.x2x_out[0][0], ntt.u_mcd1_lo.x2x_out[0][1],
+            ntt.u_mcd1_lo.x2x_out[0][0] ^ ntt.u_mcd1_lo.x2x_out[0][1],
+            ntt.u_mcd1_hi.x2x_out[0][0], ntt.u_mcd1_hi.x2x_out[0][1],
+            ntt.u_mcd1_hi.x2x_out[0][0] ^ ntt.u_mcd1_hi.x2x_out[0][1]);
+        // Round 4: dump SecAdd outputs (Boolean-shared sums) from both threshold
+        // compare instances. SecAdd output XOR should match (c + offset) mod 2^13
+        // for the corresponding pipeline cycle.
+        // LO threshold operates on x2x_out from 3 cycles ago. SecAdd output XOR
+        // SHOULD = (c[T-13] + 7359) mod 8192 for "ge_lo" path,
+        // and (c[T-13] + 5695) mod 8192 for "lt_hi" path.
+        $display("[DBG_M_SECADD #%0d] LO lo_S=[%h,%h] xor=%h(=%0d)  LO hi_S=[%h,%h] xor=%h(=%0d)",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0], ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0], ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1]);
+        $display("[DBG_M_SECADD_HI #%0d] HI lo_S=[%h,%h] xor=%h(=%0d)  HI hi_S=[%h,%h] xor=%h(=%0d)",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0], ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0], ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1]);
+        dbg_m_ena_cnt <= dbg_m_ena_cnt + 1;
+    end
+    if (ntt_shadow.m_ena && dbg_s_ena_cnt < 128) begin
+        $display("[DBG_S s_ena #%0d t=%0t] m_dec=%h quo0_r1[0]=%b quo1_r1[0]=%b state_r13=%h",
+            dbg_s_ena_cnt, $time, ntt_shadow.m_dec,
+            ntt_shadow.quo0_butt_r1[0], ntt_shadow.quo1_butt_r1[0],
+            ntt_shadow.state_r13);
+        dbg_s_ena_cnt <= dbg_s_ena_cnt + 1;
+    end
+
+    // Round 2: print masked's wrapper INPUTS at state_r3 = 0x1d/0x1e events.
+    // First 16. Compute cleartext c per half. This tells us what compress_d1
+    // SHOULD be (for comparison with the m_dec outputs above; outputs lag
+    // inputs by 15 cycles in v2 wrapper).
+    if ((ntt.state_r3 == 6'h 1d || ntt.state_r3 == 6'h 1e) && dbg_in_cnt < 16) begin
+        $display("[DBG_IN #%0d t=%0t state_r3=%h] d_p_lo=%h d_m_lo=%h c_lo=%0d  |  d_p_hi=%h d_m_hi=%h c_hi=%0d",
+            dbg_in_cnt, $time, ntt.state_r3,
+            ntt.mcd1_d_p_lo, ntt.mcd1_d_m_lo,
+            // Cleartext c_lo = (d_p_lo - d_m_lo + Q) mod Q
+            ({1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo}) >= 13'h d01 ?
+                {1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo} - 13'h d01 :
+                {1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo},
+            ntt.mcd1_d_p_hi, ntt.mcd1_d_m_hi,
+            ({1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi}) >= 13'h d01 ?
+                {1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi} - 13'h d01 :
+                {1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi});
+        dbg_in_cnt <= dbg_in_cnt + 1;
     end
 end
 
@@ -856,9 +929,16 @@ integer inv_diff_cnt_R0 = 0;
 integer inv_diff_cnt_R1 = 0;
 integer inv_diff_cnt_R2 = 0;
 
+// Step 3+5 Phase A v1: at the m_dec states the masked design now packs
+// 1-bit-per-half from masked_compress_d1 instead of the full 11-bit butterfly
+// quotient. Wdata bits above the LSB don't match the shadow's full quotient
+// at these states by design — gate the invariant check there. Other states
+// still must agree.
+wire inv_check_gated = (ntt.state_r13 == 6'h 1d) || (ntt.state_r13 == 6'h 1e);
+
 always @(posedge clk) begin
     // RAM0 write-data invariant
-    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered_R0 !== ntt_shadow.wdata_RAM0) begin
+    if (!inv_check_gated && ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered_R0 !== ntt_shadow.wdata_RAM0) begin
         if (inv_diff_cnt_R0 < 8)
             $display("[INV_BROKEN_R0 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
                 $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered_R0, ntt_shadow.wdata_RAM0);
@@ -871,7 +951,7 @@ always @(posedge clk) begin
     end
 
     // RAM1 write-data invariant
-    if (ntt.wen_RAM1 && ntt_shadow.wen_RAM1 && inv_recovered_R1 !== ntt_shadow.wdata_RAM1) begin
+    if (!inv_check_gated && ntt.wen_RAM1 && ntt_shadow.wen_RAM1 && inv_recovered_R1 !== ntt_shadow.wdata_RAM1) begin
         if (inv_diff_cnt_R1 < 8)
             $display("[INV_BROKEN_R1 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
                 $time, ntt.state_r13, ntt.wdata_RAM1, ntt.wdata_RAM1_m, inv_recovered_R1, ntt_shadow.wdata_RAM1);

@@ -289,30 +289,30 @@
     <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2017"/>
     <Step Id="synth_design"/>
   </Strategy>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_5"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_7"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_11"/>
-  <BlockFileSet Type="BlockSrcs" Name="mult_gen_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_6"/>
   <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_5"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_2"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_11"/>
+  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_7"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_1"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_8"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_6"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_8"/>
-  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_6"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_0"/>
-  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_2"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_0"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_3"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_8"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_9"/>
+  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_0"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_4"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_6"/>
-  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_7"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_5"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_9"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_3"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_5"/>
   <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_2"/>
-  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_1"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_4"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_2"/>
+  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_1"/>
+  <BlockFileSet Type="BlockSrcs" Name="mult_gen_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_7"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_5"/>
 </GenRun>
