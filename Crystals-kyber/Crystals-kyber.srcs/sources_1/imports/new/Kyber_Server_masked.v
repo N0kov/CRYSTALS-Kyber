@@ -853,17 +853,34 @@ always @(posedge clk) begin
     end
 
     // (D) samp_q (registered sampler values that drive wdata_RAM0/1 at the
-    //     sampling state). If samp_q differs before samp_masked is computed,
-    //     the divergence is upstream of mask injection.
-    if ((ntt.samp0_q !== ntt_shadow.samp0_q ||
-         ntt.samp1_q !== ntt_shadow.samp1_q ||
-         ntt.samp2_q !== ntt_shadow.samp2_q ||
-         ntt.samp3_q !== ntt_shadow.samp3_q)) begin
-        if (cmp_w0_diff < 3) // limit to first few
-            $display("[SAMP_Q_DIFF t=%0t] m.samp_q={%h,%h,%h,%h} s.samp_q={%h,%h,%h,%h} state=%h",
-                $time, ntt.samp0_q, ntt.samp1_q, ntt.samp2_q, ntt.samp3_q,
-                ntt_shadow.samp0_q, ntt_shadow.samp1_q, ntt_shadow.samp2_q, ntt_shadow.samp3_q,
-                ntt.state);
+    //     sampling state). Step 4 replaced the masked NTT's cleartext samp_q
+    //     register with masked samp_p_q + mask samp_m_q. Recombine
+    //     (samp_p_q - samp_m_q) mod Q to compare against the shadow's
+    //     unmasked samp_q.
+    begin : samp_q_recomb_block
+        reg [11:0] m_samp_recomb [0:3];
+        m_samp_recomb[0] = ntt.samp0_p_q >= ntt.samp0_m_q
+            ? ntt.samp0_p_q - ntt.samp0_m_q
+            : ntt.samp0_p_q + 12'h d01 - ntt.samp0_m_q;
+        m_samp_recomb[1] = ntt.samp1_p_q >= ntt.samp1_m_q
+            ? ntt.samp1_p_q - ntt.samp1_m_q
+            : ntt.samp1_p_q + 12'h d01 - ntt.samp1_m_q;
+        m_samp_recomb[2] = ntt.samp2_p_q >= ntt.samp2_m_q
+            ? ntt.samp2_p_q - ntt.samp2_m_q
+            : ntt.samp2_p_q + 12'h d01 - ntt.samp2_m_q;
+        m_samp_recomb[3] = ntt.samp3_p_q >= ntt.samp3_m_q
+            ? ntt.samp3_p_q - ntt.samp3_m_q
+            : ntt.samp3_p_q + 12'h d01 - ntt.samp3_m_q;
+        if ((m_samp_recomb[0] !== ntt_shadow.samp0_q ||
+             m_samp_recomb[1] !== ntt_shadow.samp1_q ||
+             m_samp_recomb[2] !== ntt_shadow.samp2_q ||
+             m_samp_recomb[3] !== ntt_shadow.samp3_q)) begin
+            if (cmp_w0_diff < 3) // limit to first few
+                $display("[SAMP_Q_DIFF t=%0t] m.recomb={%h,%h,%h,%h} s.samp_q={%h,%h,%h,%h} state=%h",
+                    $time, m_samp_recomb[0], m_samp_recomb[1], m_samp_recomb[2], m_samp_recomb[3],
+                    ntt_shadow.samp0_q, ntt_shadow.samp1_q, ntt_shadow.samp2_q, ntt_shadow.samp3_q,
+                    ntt.state);
+        end
     end
 
     // (E) Share-invariant check: at every wen_RAM0 cycle where both designs

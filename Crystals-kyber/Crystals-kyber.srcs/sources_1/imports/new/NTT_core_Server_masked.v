@@ -47,7 +47,13 @@ wire [1:0] k_1;
 
 wire [5:0] b0, b1, b2, b3;
 wire [2:0] samp0, samp1, samp2, samp3;
-reg [11:0] samp0_q, samp1_q, samp2_q, samp3_q;
+// Step 4: replaces samp0..3_q (cleartext binomial sample, 1-cycle stable
+// register — primary DPA target). samp{0..3}_p_q holds the masked sample
+// directly (samp_corrected + mask_used) mod Q; samp{0..3}_m_q holds the
+// mask used. Recombination (samp_p_q - samp_m_q) mod Q gives the original
+// cleartext value, so the share-sum invariant is preserved.
+reg [11:0] samp0_p_q, samp1_p_q, samp2_p_q, samp3_p_q;
+reg [11:0] samp0_m_q, samp1_m_q, samp2_m_q, samp3_m_q;
 reg fifo1_req, fifo1_req_r10;
 reg req_noise, req_noise_r1, req_noise_r2;
 wire req_noise_r12;
@@ -96,6 +102,8 @@ wire [47:0] rdata_RAM4_m;
 //   - lane 2 (mask_for_samp2) → samp2_masked + wdata_RAM2_m[35:24]
 //   - lane 3 (mask_for_samp3) → samp3_masked + wdata_RAM2_m[47:36]
 wire [11:0] mask_for_samp0, mask_for_samp1, mask_for_samp2, mask_for_samp3;
+wire [11:0] mask_for_samp0_next, mask_for_samp1_next, mask_for_samp2_next, mask_for_samp3_next;
+wire        mask_ready_next;  // Step 4: all 4 FIFOs have cnt >= 2 (next_mask valid)
 // Legacy alias kept for any straggler debug code that still references
 // `mask_const`. New code must use the per-sample mask wires above.
 wire [11:0] mask_const = mask_for_samp0;
@@ -128,10 +136,15 @@ wire        req_x4_sampling =
     .ntt_call_start  (ntt_call_start_pulse),
     .req             (req_x4_sampling),
     .valid           (mask_ready),
+    .valid_next      (mask_ready_next),
     .mask0           (mask_for_samp0),
     .mask1           (mask_for_samp1),
     .mask2           (mask_for_samp2),
-    .mask3           (mask_for_samp3)
+    .mask3           (mask_for_samp3),
+    .mask0_next      (mask_for_samp0_next),
+    .mask1_next      (mask_for_samp1_next),
+    .mask2_next      (mask_for_samp2_next),
+    .mask3_next      (mask_for_samp3_next)
 );
 
 // Step 1 invariant: mask_polyfifo_x4 must never underrun during a sampling
@@ -142,9 +155,14 @@ wire        req_x4_sampling =
 // enforce it as a logged invariant that the regression script greps for.
 reg inv_mask_underrun_S_flag = 1'b0;
 always @(posedge clk) begin
-    if (!rst && req_x4_sampling && !mask_ready) begin
+    // Step 4 strengthens the invariant: when req_x4_sampling fires, BOTH the
+    // current head AND the next-head must be valid (cnt >= 2 per lane) because
+    // the samp_p_q register reads next_mask on this exact edge. cnt < 2 would
+    // mean next_mask is stale fifo_mem and not a fresh PRNG sample → stale
+    // mask reuse → d=1 break (same as the Step 1 cnt > 0 condition).
+    if (!rst && req_x4_sampling && !mask_ready_next) begin
         if (!inv_mask_underrun_S_flag) begin
-            $display("[INV_FIRST_BREAK_MASK_S t=%0t state_r13=%h] mask_polyfifo_x4 underrun — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
+            $display("[INV_FIRST_BREAK_MASK_S t=%0t state_r13=%h] mask_polyfifo_x4 underrun (cnt<2; next_mask invalid) — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
             inv_mask_underrun_S_flag <= 1'b1;
         end
     end
@@ -836,11 +854,39 @@ assign samp0 = b0[0]-b0[1]+b0[2]-b0[3]+b0[4]-b0[5];
 assign samp1 = b1[0]-b1[1]+b1[2]-b1[3]+b1[4]-b1[5];
 assign samp2 = b2[0]-b2[1]+b2[2]-b2[3]+b2[4]-b2[5];
 assign samp3 = b3[0]-b3[1]+b3[2]-b3[3]+b3[4]-b3[5];
+
+// Step 4: combine binomial-sum mod-Q correction + mask add + mod-Q reduce in
+// the SAME combinational chain so the register downstream stores ALREADY-MASKED
+// data. samp0_corrected is the post-correction value in [0, Q).
+wire [11:0] samp0_corrected = samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : {9'h0, samp0};
+wire [11:0] samp1_corrected = samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : {9'h0, samp1};
+wire [11:0] samp2_corrected = samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : {9'h0, samp2};
+wire [11:0] samp3_corrected = samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : {9'h0, samp3};
+
+// Step 4 mask selection. The FIFO pop happens at THIS edge if req=1, so reading
+// mask_for_samp at the edge yields PRE-pop value. For back-to-back sampling
+// cycles, that would reuse the same mask. Use next_mask (= fifo_mem[rptr+1])
+// when a pop is in progress so the registered mask matches what the OLD design
+// would have used at the consumption cycle.
+wire [11:0] mask_used_S0 = req_x4_sampling ? mask_for_samp0_next : mask_for_samp0;
+wire [11:0] mask_used_S1 = req_x4_sampling ? mask_for_samp1_next : mask_for_samp1;
+wire [11:0] mask_used_S2 = req_x4_sampling ? mask_for_samp2_next : mask_for_samp2;
+wire [11:0] mask_used_S3 = req_x4_sampling ? mask_for_samp3_next : mask_for_samp3;
+
+wire [12:0] samp0_p_pre = {1'b0, samp0_corrected} + {1'b0, mask_used_S0};
+wire [12:0] samp1_p_pre = {1'b0, samp1_corrected} + {1'b0, mask_used_S1};
+wire [12:0] samp2_p_pre = {1'b0, samp2_corrected} + {1'b0, mask_used_S2};
+wire [12:0] samp3_p_pre = {1'b0, samp3_corrected} + {1'b0, mask_used_S3};
+
 always @(posedge clk) begin
-	samp0_q <= samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : samp0;
-	samp1_q <= samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : samp1;	
-	samp2_q <= samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : samp2;
-	samp3_q <= samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : samp3;
+    samp0_p_q <= (samp0_p_pre >= 13'h d01) ? samp0_p_pre[11:0] - 12'h d01 : samp0_p_pre[11:0];
+    samp1_p_q <= (samp1_p_pre >= 13'h d01) ? samp1_p_pre[11:0] - 12'h d01 : samp1_p_pre[11:0];
+    samp2_p_q <= (samp2_p_pre >= 13'h d01) ? samp2_p_pre[11:0] - 12'h d01 : samp2_p_pre[11:0];
+    samp3_p_q <= (samp3_p_pre >= 13'h d01) ? samp3_p_pre[11:0] - 12'h d01 : samp3_p_pre[11:0];
+    samp0_m_q <= mask_used_S0;
+    samp1_m_q <= mask_used_S1;
+    samp2_m_q <= mask_used_S2;
+    samp3_m_q <= mask_used_S3;
 end
 always @(posedge clk) begin
 	state_r1 <=state;
@@ -1080,14 +1126,14 @@ endcase
 // enters RAM; all other states write butterfly outputs which are already
 // masked downstream.
 // Step 1: each of the 4 samples in a cycle uses an independent mask.
-wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_for_samp0};
-wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_for_samp1};
-wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_for_samp2};
-wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_for_samp3};
-wire [11:0] samp0_masked = (samp0_plus >= 13'h d01) ? samp0_plus[11:0] - 12'h d01 : samp0_plus[11:0];
-wire [11:0] samp1_masked = (samp1_plus >= 13'h d01) ? samp1_plus[11:0] - 12'h d01 : samp1_plus[11:0];
-wire [11:0] samp2_masked = (samp2_plus >= 13'h d01) ? samp2_plus[11:0] - 12'h d01 : samp2_plus[11:0];
-wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d01 : samp3_plus[11:0];
+// Step 4: samp{0..3}_masked are now direct aliases for the masked-register
+// outputs. The old samp_plus / samp_masked combinational chain (samp_q + mask
+// + mod-Q reduce) moved INTO the register stage above, so samp{i}_p_q ==
+// (samp{i}_corrected + mask_used_S{i}) mod Q directly.
+wire [11:0] samp0_masked = samp0_p_q;
+wire [11:0] samp1_masked = samp1_p_q;
+wire [11:0] samp2_masked = samp2_p_q;
+wire [11:0] samp3_masked = samp3_p_q;
 
 // =============================================================================
 // Stage 3: unmask helper. Computes (masked - mask + Q) mod Q per 12-bit half.
@@ -1517,11 +1563,14 @@ endcase
 // At decomp/quotient states, mask writes BU_m's decomp/quo retiming.
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
-		// Step 1: each lane stores its own fresh mask matching the per-sample
-		// mask used by samp{0..3}_masked above. Layout matches primary's
-		// {samp1_masked, samp0_masked} and {samp3_masked, samp2_masked}.
-		wdata_RAM0_m = {mask_for_samp1, mask_for_samp0};
-		wdata_RAM1_m = {mask_for_samp3, mask_for_samp2};
+		// Step 4: each lane stores the mask that was used at the corresponding
+		// samp{i}_p_q register (= samp{i}_m_q), not the current mask_for_samp{i}
+		// value. The register selection in the always block above already chose
+		// next_mask vs current to keep masks distinct across back-to-back
+		// sampling cycles; the samp{i}_m_q register captures whatever mask was
+		// chosen, so consumers here just forward it.
+		wdata_RAM0_m = {samp1_m_q, samp0_m_q};
+		wdata_RAM1_m = {samp3_m_q, samp2_m_q};
 	end
 	4'h 2, 5'h 7, 5'h 11, 6'h 19, 6'h 2a, 6'h 34 : begin
 		wdata_RAM0_m = out0_butt_r1_m;
@@ -1584,9 +1633,10 @@ always @(*) case(state_r13)
 	// to preserve the share invariant. Stage 2 erroneously grouped 6'h 14/15
 	// with the noise-sampling states.
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 :
-		// Step 1: 48-bit mask packs four per-sample masks matching
-		// {samp3_masked, samp2_masked, samp1_masked, samp0_masked} on primary.
-		wdata_RAM2_m = {mask_for_samp3, mask_for_samp2, mask_for_samp1, mask_for_samp0};
+		// Step 4: 48-bit mask packs the four samp{i}_m_q registers, which hold
+		// the masks selected at the samp_p_q registration edge (next_mask vs
+		// current_mask).
+		wdata_RAM2_m = {samp3_m_q, samp2_m_q, samp1_m_q, samp0_m_q};
 	default :
 		wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
 endcase

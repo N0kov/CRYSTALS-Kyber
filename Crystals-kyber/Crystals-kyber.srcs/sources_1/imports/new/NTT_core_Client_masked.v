@@ -33,7 +33,11 @@ wire [1:0] k_1;
 
 wire [5:0] b0, b1, b2, b3;
 wire [2:0] samp0, samp1, samp2, samp3;
-reg [11:0] samp0_q, samp1_q, samp2_q, samp3_q;
+// Step 4 (see NTT_core_Server_masked.v for full rationale): replace cleartext
+// samp_q register with masked samp_p_q + mask-share samp_m_q. Eliminates the
+// 1-cycle stable cleartext leak (primary DPA target).
+reg [11:0] samp0_p_q, samp1_p_q, samp2_p_q, samp3_p_q;
+reg [11:0] samp0_m_q, samp1_m_q, samp2_m_q, samp3_m_q;
 reg fifo1_req, fifo1_req_r10;
 reg req_noise, req_noise_r1, req_noise_r2;
 wire req_noise_r12;
@@ -63,8 +67,10 @@ wire [47:0] rdata_RAM4_m;
 // Step 1 (per-coefficient masking): 4-way mask source matching the Server.
 // See NTT_core_Server_masked.v ~line 88 for the design rationale.
 wire [11:0] mask_for_samp0, mask_for_samp1, mask_for_samp2, mask_for_samp3;
+wire [11:0] mask_for_samp0_next, mask_for_samp1_next, mask_for_samp2_next, mask_for_samp3_next;
 wire [11:0] mask_const = mask_for_samp0;  // legacy alias for any debug code
 wire        mask_ready;
+wire        mask_ready_next;  // Step 4: cnt >= 2 per lane
 reg         start_d1;
 always @(posedge clk) begin
     if (rst) start_d1 <= 1'b0;
@@ -90,10 +96,15 @@ wire        req_x4_sampling =
     .ntt_call_start  (ntt_call_start_pulse),
     .req             (req_x4_sampling),
     .valid           (mask_ready),
+    .valid_next      (mask_ready_next),
     .mask0           (mask_for_samp0),
     .mask1           (mask_for_samp1),
     .mask2           (mask_for_samp2),
-    .mask3           (mask_for_samp3)
+    .mask3           (mask_for_samp3),
+    .mask0_next      (mask_for_samp0_next),
+    .mask1_next      (mask_for_samp1_next),
+    .mask2_next      (mask_for_samp2_next),
+    .mask3_next      (mask_for_samp3_next)
 );
 
 // Step 1 invariant (matches Server): mask_polyfifo_x4 must never underrun.
@@ -101,23 +112,21 @@ wire        req_x4_sampling =
 // if a stale mask is ever reused at the sampling site (silent d=1 break).
 reg inv_mask_underrun_C_flag = 1'b0;
 always @(posedge clk) begin
-    if (!rst && req_x4_sampling && !mask_ready) begin
+    if (!rst && req_x4_sampling && !mask_ready_next) begin
         if (!inv_mask_underrun_C_flag) begin
-            $display("[INV_FIRST_BREAK_MASK_C t=%0t state_r13=%h] mask_polyfifo_x4 underrun — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
+            $display("[INV_FIRST_BREAK_MASK_C t=%0t state_r13=%h] mask_polyfifo_x4 underrun (cnt<2; next_mask invalid) — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
             inv_mask_underrun_C_flag <= 1'b1;
         end
     end
 end
 
 // Mask-add for sampling (Step 1: per-sample masks)
-wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_for_samp0};
-wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_for_samp1};
-wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_for_samp2};
-wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_for_samp3};
-wire [11:0] samp0_masked = (samp0_plus >= 13'h d01) ? samp0_plus[11:0] - 12'h d01 : samp0_plus[11:0];
-wire [11:0] samp1_masked = (samp1_plus >= 13'h d01) ? samp1_plus[11:0] - 12'h d01 : samp1_plus[11:0];
-wire [11:0] samp2_masked = (samp2_plus >= 13'h d01) ? samp2_plus[11:0] - 12'h d01 : samp2_plus[11:0];
-wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d01 : samp3_plus[11:0];
+// Step 4: samp{i}_masked are direct aliases for the masked register outputs;
+// the old combinational add + mod-Q moved into the always block below.
+wire [11:0] samp0_masked = samp0_p_q;
+wire [11:0] samp1_masked = samp1_p_q;
+wire [11:0] samp2_masked = samp2_p_q;
+wire [11:0] samp3_masked = samp3_p_q;
 
 // =============================================================================
 // Stage 3 unmask helpers: (masked + Q - mask) wrapped to [0, Q) per 12-bit half.
@@ -360,11 +369,32 @@ assign samp0 = b0[0]-b0[1]+b0[2]-b0[3]+b0[4]-b0[5];
 assign samp1 = b1[0]-b1[1]+b1[2]-b1[3]+b1[4]-b1[5];
 assign samp2 = b2[0]-b2[1]+b2[2]-b2[3]+b2[4]-b2[5];
 assign samp3 = b3[0]-b3[1]+b3[2]-b3[3]+b3[4]-b3[5];
+
+// Step 4: see NTT_core_Server_masked.v for the full rationale. Combinationally
+// compute (samp_corrected + mask_used) in [0, 2Q), then register the mod-Q
+// reduced value as samp_p_q. mask_used = req ? next_mask : current_mask.
+wire [11:0] samp0_corrected = samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : {9'h0, samp0};
+wire [11:0] samp1_corrected = samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : {9'h0, samp1};
+wire [11:0] samp2_corrected = samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : {9'h0, samp2};
+wire [11:0] samp3_corrected = samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : {9'h0, samp3};
+wire [11:0] mask_used_C0 = req_x4_sampling ? mask_for_samp0_next : mask_for_samp0;
+wire [11:0] mask_used_C1 = req_x4_sampling ? mask_for_samp1_next : mask_for_samp1;
+wire [11:0] mask_used_C2 = req_x4_sampling ? mask_for_samp2_next : mask_for_samp2;
+wire [11:0] mask_used_C3 = req_x4_sampling ? mask_for_samp3_next : mask_for_samp3;
+wire [12:0] samp0_p_pre = {1'b0, samp0_corrected} + {1'b0, mask_used_C0};
+wire [12:0] samp1_p_pre = {1'b0, samp1_corrected} + {1'b0, mask_used_C1};
+wire [12:0] samp2_p_pre = {1'b0, samp2_corrected} + {1'b0, mask_used_C2};
+wire [12:0] samp3_p_pre = {1'b0, samp3_corrected} + {1'b0, mask_used_C3};
+
 always @(posedge clk) begin
-	samp0_q <= samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : samp0;
-	samp1_q <= samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : samp1;	
-	samp2_q <= samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : samp2;
-	samp3_q <= samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : samp3;
+    samp0_p_q <= (samp0_p_pre >= 13'h d01) ? samp0_p_pre[11:0] - 12'h d01 : samp0_p_pre[11:0];
+    samp1_p_q <= (samp1_p_pre >= 13'h d01) ? samp1_p_pre[11:0] - 12'h d01 : samp1_p_pre[11:0];
+    samp2_p_q <= (samp2_p_pre >= 13'h d01) ? samp2_p_pre[11:0] - 12'h d01 : samp2_p_pre[11:0];
+    samp3_p_q <= (samp3_p_pre >= 13'h d01) ? samp3_p_pre[11:0] - 12'h d01 : samp3_p_pre[11:0];
+    samp0_m_q <= mask_used_C0;
+    samp1_m_q <= mask_used_C1;
+    samp2_m_q <= mask_used_C2;
+    samp3_m_q <= mask_used_C3;
 end
 always @(posedge clk) begin
 	state_r1 <=state;
@@ -763,10 +793,10 @@ endcase
 //   default                          : out0_butt_r1, out1_butt_r1
 always @(*) case(state_r13)
     5'h 1e, 5'h 1f : begin
-        // Step 1: each lane gets its own fresh mask; layout matches primary's
-        // {samp1_masked, samp0_masked} / {samp3_masked, samp2_masked}.
-        wdata_RAM0_m = {mask_for_samp1, mask_for_samp0};
-        wdata_RAM1_m = {mask_for_samp3, mask_for_samp2};
+        // Step 4: each lane stores the mask that was used at the corresponding
+        // samp{i}_p_q register (= samp{i}_m_q). See Server for next_mask logic.
+        wdata_RAM0_m = {samp1_m_q, samp0_m_q};
+        wdata_RAM1_m = {samp3_m_q, samp2_m_q};
     end
     4'h 2, 4'h a, 5'h 14 : begin
         wdata_RAM0_m = out0_butt_r1_m;
@@ -807,7 +837,7 @@ endcase
 always @(*) case(state_r13)
     5'h a, 5'h b, 5'h 14, 5'h 15 :
         // Step 1: 48-bit mask matches primary's {samp3..samp0}_masked layout.
-        wdata_RAM2_m = {mask_for_samp3, mask_for_samp2, mask_for_samp1, mask_for_samp0};
+        wdata_RAM2_m = {samp3_m_q, samp2_m_q, samp1_m_q, samp0_m_q};
     default :
         wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
 endcase

@@ -48,11 +48,25 @@ module mask_polyfifo_x4 #(
     input  logic        reset_i,                  // active-low
     input  logic        ntt_call_start,           // 1-cycle pulse: reseed all
     input  logic        req,                      // pop one mask from each FIFO
-    output logic        valid,                    // all 4 FIFOs non-empty
+    output logic        valid,                    // all 4 FIFOs non-empty (cnt > 0)
+    output logic        valid_next,               // all 4 FIFOs have >= 2 entries
+                                                  // (required when consumer reads
+                                                  // next_mask on the same edge as
+                                                  // pop — see Step 4 / next_mask
+                                                  // section below)
     output logic [11:0] mask0,
     output logic [11:0] mask1,
     output logic [11:0] mask2,
-    output logic [11:0] mask3
+    output logic [11:0] mask3,
+    // Step 4: "next" mask ports expose fifo_mem[rptr+1] — i.e., the mask that
+    // WILL be at the FIFO head after the pending pop. The Step 4 masked sampler
+    // selects between these and the current-head masks based on whether req is
+    // high at the registration edge, so that back-to-back sampling cycles see
+    // distinct masks even though the register reads the FIFO PRE-pop.
+    output logic [11:0] mask0_next,
+    output logic [11:0] mask1_next,
+    output logic [11:0] mask2_next,
+    output logic [11:0] mask3_next
 );
 
     // -------------------------------------------------------------------------
@@ -160,5 +174,14 @@ module mask_polyfifo_x4 #(
     assign mask1 = fifo_mem[1][rptr[1]];
     assign mask2 = fifo_mem[2][rptr[2]];
     assign mask3 = fifo_mem[3][rptr[3]];
+
+    // Step 4: next-head ports. rptr+1 wraps naturally since PTR_W = $clog2
+    // (FIFO_DEPTH) and FIFO_DEPTH is power-of-2. valid_next demands cnt >= 2
+    // per lane so fifo_mem[rptr+1] is a real (pushed) entry, not stale.
+    assign mask0_next = fifo_mem[0][rptr[0] + 1'b1];
+    assign mask1_next = fifo_mem[1][rptr[1] + 1'b1];
+    assign mask2_next = fifo_mem[2][rptr[2] + 1'b1];
+    assign mask3_next = fifo_mem[3][rptr[3] + 1'b1];
+    assign valid_next = (cnt[0] > 1) && (cnt[1] > 1) && (cnt[2] > 1) && (cnt[3] > 1);
 
 endmodule
