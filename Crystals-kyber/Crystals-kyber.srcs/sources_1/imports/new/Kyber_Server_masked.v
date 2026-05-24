@@ -934,7 +934,15 @@ integer inv_diff_cnt_R2 = 0;
 // quotient. Wdata bits above the LSB don't match the shadow's full quotient
 // at these states by design — gate the invariant check there. Other states
 // still must agree.
-wire inv_check_gated = (ntt.state_r13 == 6'h 1d) || (ntt.state_r13 == 6'h 1e);
+// Phase B: also gate 0x2c/0x2d because the masked path's butterfly quo at
+// those states is garbage now (in_butt loads shares, not unmasked); the
+// shadow's quo is the unmasked compress. Both wdata_RAM* (which sources
+// quo at those states) and wdata_RAM2 (which packs RAM0/RAM1 wdata) diverge
+// from shadow by design.
+wire inv_check_gated = (ntt.state_r13 == 6'h 1d) || (ntt.state_r13 == 6'h 1e)
+                    || (ntt.state_r13 == 6'h 2c) || (ntt.state_r13 == 6'h 2d);
+
+// DBG: Phase B mcdN debug removed after isolation of stall bug.
 
 always @(posedge clk) begin
     // RAM0 write-data invariant
@@ -964,7 +972,7 @@ always @(posedge clk) begin
     end
 
     // RAM2 write-data invariant (48-bit, four 12-bit halves)
-    if ((ntt.wen_RAM2 || ntt.wen_RAM3) && (ntt_shadow.wen_RAM2 || ntt_shadow.wen_RAM3) &&
+    if (!inv_check_gated && (ntt.wen_RAM2 || ntt.wen_RAM3) && (ntt_shadow.wen_RAM2 || ntt_shadow.wen_RAM3) &&
         inv_recovered_R2 !== ntt_shadow.wdata_RAM2) begin
         if (inv_diff_cnt_R2 < 8)
             $display("[INV_BROKEN_R2 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",

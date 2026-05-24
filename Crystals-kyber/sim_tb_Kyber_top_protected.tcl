@@ -40,8 +40,6 @@ set files_to_add [list \
     [file join $NH_DIR   "d_ff.sv"] \
     [file join $NH_DIR   "clock_mux.sv"] \
     [file join $NH_DIR   "rng.sv"] \
-    [file join $NH_DIR   "mask_csprng.sv"] \
-    [file join $NH_DIR   "mask_polyfifo.sv"] \
     [file join $NH_DIR   "mask_polyfifo_x4.sv"] \
     [file join $X2X_SRC  "D_reg.sv"] \
     [file join $X2X_SRC  "D_reg_NEG_EDGE.sv"] \

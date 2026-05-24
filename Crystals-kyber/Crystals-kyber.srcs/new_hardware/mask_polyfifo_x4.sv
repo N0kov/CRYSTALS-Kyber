@@ -34,7 +34,15 @@ module mask_polyfifo_x4 #(
     parameter [31:0] SEED2 = 32'hFEEDFACE,
     parameter [31:0] SEED3 = 32'hBAADF00D,
     parameter [11:0] Q     = 12'h D01,            // Kyber prime
-    parameter        FIFO_DEPTH = 32              // power-of-2 recommended
+    parameter        FIFO_DEPTH = 256             // power-of-2 recommended
+                                                  // Step 1: must be deep enough that
+                                                  // the slowest XORShift (0.813 push/cycle)
+                                                  // never falls behind a 1-pop/cycle/lane
+                                                  // sampling burst. Audited: 32-deep saw
+                                                  // ~200 stale-mask underruns per KEM at
+                                                  // Kyber1024; 256 is the next sound
+                                                  // operating point (one slot per
+                                                  // coefficient in a 256-coeff poly).
 ) (
     input  logic        clk_i,
     input  logic        reset_i,                  // active-low

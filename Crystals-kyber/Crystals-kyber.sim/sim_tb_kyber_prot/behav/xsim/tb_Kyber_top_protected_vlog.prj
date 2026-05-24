@@ -56,8 +56,8 @@ verilog xil_defaultlib  --include "../../../../../../../home/lincoln/2025.2/data
 
 sv xil_defaultlib  --include "../../../../../../../home/lincoln/2025.2/data/rsb/busdef" \
 "../../../../Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v" \
-"../../../../Crystals-kyber.srcs/new_hardware/mask_csprng.sv" \
-"../../../../Crystals-kyber.srcs/new_hardware/mask_polyfifo.sv" \
+"../../../../Crystals-kyber.srcs/new_hardware/unused/mask_csprng.sv" \
+"../../../../Crystals-kyber.srcs/new_hardware/unused/mask_polyfifo.sv" \
 "../../../../Crystals-kyber.srcs/new_hardware/mask_polyfifo_x4.sv" \
 "../../../../../X2X-main/src/D_reg.sv" \
 "../../../../../X2X-main/src/D_reg_NEG_EDGE.sv" \
@@ -80,6 +80,8 @@ sv xil_defaultlib  --include "../../../../../../../home/lincoln/2025.2/data/rsb/
 "../../../../../X2X-main/src_tb/PRNG_engine_STREAM.sv" \
 "../../../../Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv" \
 "../../../../Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv" \
+"../../../../Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv" \
+"../../../../Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv" \
 
 # compile glbl module
 verilog xil_defaultlib "glbl.v"

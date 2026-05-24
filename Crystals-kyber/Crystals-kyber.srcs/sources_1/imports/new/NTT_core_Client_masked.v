@@ -96,6 +96,19 @@ wire        req_x4_sampling =
     .mask3           (mask_for_samp3)
 );
 
+// Step 1 invariant (matches Server): mask_polyfifo_x4 must never underrun.
+// Logged as INV_FIRST_BREAK_MASK_C so the regression script fails the run
+// if a stale mask is ever reused at the sampling site (silent d=1 break).
+reg inv_mask_underrun_C_flag = 1'b0;
+always @(posedge clk) begin
+    if (!rst && req_x4_sampling && !mask_ready) begin
+        if (!inv_mask_underrun_C_flag) begin
+            $display("[INV_FIRST_BREAK_MASK_C t=%0t state_r13=%h] mask_polyfifo_x4 underrun — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
+            inv_mask_underrun_C_flag <= 1'b1;
+        end
+    end
+end
+
 // Mask-add for sampling (Step 1: per-sample masks)
 wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_for_samp0};
 wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_for_samp1};

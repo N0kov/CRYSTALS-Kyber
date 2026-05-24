@@ -1,0 +1,21 @@
+# compile verilog/system verilog design source files
+sv xil_defaultlib  --include "../../../../../../../../home/lincoln/2025.2/data/rsb/busdef" \
+"../../../../../../X2X-main/src/D_reg.sv" \
+"../../../../../../X2X-main/src/D_reg_NEG_EDGE.sv" \
+"../../../../../../X2X-main/src/SecANDOR_ALT.sv" \
+"../../../../../../X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv" \
+"../../../../../../X2X-main/src/SecAnd.sv" \
+"../../../../../../X2X-main/src/SecAnd_NEG_EDGE.sv" \
+"../../../../../../X2X-main/src/SecNOT.sv" \
+"../../../../../../X2X-main/src/SecOR_ALT.sv" \
+"../../../../../../X2X-main/src/SecXOR.sv" \
+"../../../../../../X2X-main/src/box_HALFCYCLE.sv" \
+"../../../../../Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv" \
+"../../../../../../X2X-main/src/triangle.sv" \
+"../../../../../Crystals-kyber.srcs/new_hardware/tb_masked_compress_dN.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

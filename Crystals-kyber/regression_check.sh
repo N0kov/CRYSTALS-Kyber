@@ -62,5 +62,16 @@ if grep -qE "\[INV_FIRST_BREAK_R[012]|\[INV_BROKEN_R[012]" $PROJ/regression_run.
     exit 6
 fi
 
-echo "[regression] PASS: server and client streams match gold (400/400 lines, identical) + share invariant holds"
+# Step 1 mask-FIFO-underrun invariant. mask_polyfifo_x4 must never run dry
+# during a sampling state; a stale mask reused at the sampling site silently
+# breaks d=1 probing security (the KAT cannot detect it because same mask
+# added then subtracted still cancels). NTT_core_*_masked.v logs the first
+# such event as INV_FIRST_BREAK_MASK_{S,C}.
+if grep -qE "\[INV_FIRST_BREAK_MASK_[SC]" $PROJ/regression_run.log; then
+    echo "[regression] FAIL: mask_polyfifo_x4 underran (stale mask reused — d=1 broken)"
+    grep -E "\[INV_FIRST_BREAK_MASK_[SC]" $PROJ/regression_run.log | head -10
+    exit 7
+fi
+
+echo "[regression] PASS: server and client streams match gold (400/400 lines, identical) + share invariant holds + mask FIFO never underran"
 exit 0

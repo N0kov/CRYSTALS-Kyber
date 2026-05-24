@@ -134,6 +134,22 @@ wire        req_x4_sampling =
     .mask3           (mask_for_samp3)
 );
 
+// Step 1 invariant: mask_polyfifo_x4 must never underrun during a sampling
+// state. An underrun means a stale mask is reused at the sampling site, which
+// silently breaks d=1 probing security (two coefficients masked with the same
+// r → their difference reveals the unmasked difference). The KAT itself
+// cannot detect this — same mask added then subtracted still cancels — so we
+// enforce it as a logged invariant that the regression script greps for.
+reg inv_mask_underrun_S_flag = 1'b0;
+always @(posedge clk) begin
+    if (!rst && req_x4_sampling && !mask_ready) begin
+        if (!inv_mask_underrun_S_flag) begin
+            $display("[INV_FIRST_BREAK_MASK_S t=%0t state_r13=%h] mask_polyfifo_x4 underrun — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
+            inv_mask_underrun_S_flag <= 1'b1;
+        end
+    end
+end
+
 // =============================================================================
 // Step 3+5 Phase A v1: masked d=1 compression for m_dec (states 0x1d/0x1e).
 //
@@ -311,6 +327,201 @@ wire mcd1_valid_result_lo, mcd1_valid_result_hi;
 // RAM writeback at state_r13 == 0x1d/0x1e. v2 keeps them shared longer.
 wire mcd1_bit_lo = mcd1_m_p_lo ^ mcd1_m_m_lo;
 wire mcd1_bit_hi = mcd1_m_p_hi ^ mcd1_m_m_hi;
+
+// =============================================================================
+// Step 3+5 Phase B v1: masked du compression at states 0x2c/0x2d (D=11 for k=4).
+//
+// Two masked_compress_dN_full instances (lo + hi halves) compute the
+// Kyber compression compress_q(c, 11) on arithmetic-share input. The FSM
+// stalls the parent state register at 0x2c/0x2d until the compute completes
+// (~150 cycles per state value).
+//
+// Output: cleartext 11-bit compress values per half (XOR of Boolean shares
+// at the module boundary — acceptable per XOR-3 ledger note since dout
+// goes to the public ciphertext stream).
+//
+// Plan reference: plan_masked_ntt_phaseB_design.md §11-12
+// =============================================================================
+
+localparam MCDN_D            = 11;
+localparam MCDN_PARAM_WIDTH  = 13;
+localparam MCDN_N_SHARES     = 2;
+localparam MCDN_N_STAGES     = 4;
+localparam MCDN_X2X_RND_SHARES      = 2 * (MCDN_N_SHARES - 1) + 2 * MCDN_N_SHARES
+                                      + 4 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_X2X_RND_SHARES_8bit = 2 * MCDN_N_STAGES * 3
+                                      * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_LD_RND_TRI = 2 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_LD_RND_BOX = (MCDN_N_STAGES - 1) * 3 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2)
+                             + 2 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+
+// Reuse the mcd1 PRNG randomness arrays (mcd1_rnd_shares*) — they refill on
+// prng_done and hold otherwise. This is acceptable for v1 first-order security
+// (same randomness reuse pattern as Phase A v1's mcd1).
+//
+// Slice randomness for the LD inputs:
+wire [MCDN_PARAM_WIDTH - 1 : 0] mcdN_ld_rnd_tri [MCDN_LD_RND_TRI - 1 : 0];
+wire [7:0]                      mcdN_ld_rnd_box [MCDN_LD_RND_BOX - 1 : 0];
+wire [11:0]                     mcdN_ld_rnd_and12;
+
+genvar gN;
+generate
+    for (gN = 0; gN < MCDN_LD_RND_TRI; gN = gN + 1) begin : g_mcdN_tri
+        assign mcdN_ld_rnd_tri[gN] = mcd1_rnd_shares[gN];
+    end
+    for (gN = 0; gN < MCDN_LD_RND_BOX; gN = gN + 1) begin : g_mcdN_box
+        assign mcdN_ld_rnd_box[gN] = mcd1_rnd_shares_8bit[gN];
+    end
+endgenerate
+assign mcdN_ld_rnd_and12 = mcd1_rnd_shares[MCDN_LD_RND_TRI][11:0];
+
+// -----------------------------------------------------------------------------
+// mc FSM — drives the masked compress runs and stalls the parent FSM
+//
+// Stall design: mc_stall is combinational from state and a "compress_done +
+// compress_done_state" pair. compress_done_state captures the state value the
+// most recent compress was done for. mc_stall is only deasserted if we're in
+// a compress state that has ALREADY been computed for. After state advances
+// past that, compress_done_state no longer matches, mc_stall goes high again
+// and a new compress starts.
+// -----------------------------------------------------------------------------
+wire in_compress_state = (state == 6'h 2c) || (state == 6'h 2d);
+
+reg       compress_done;
+reg [5:0] compress_done_state;
+reg       mcdN_busy;
+reg [3:0] mcdN_wait_cnt;
+reg       mcdN_start_pulse_r;
+wire      mcdN_done_lo, mcdN_done_hi;
+wire      mcdN_all_done = mcdN_done_lo & mcdN_done_hi;
+
+reg  mcdN_all_done_prev;
+wire mcdN_done_edge = mcdN_busy & mcdN_all_done & ~mcdN_all_done_prev;
+
+// "Compress is done for the state we're currently in" — release stall only then.
+wire compress_done_for_curr = compress_done & (state == compress_done_state);
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        compress_done       <= 1'b0;
+        compress_done_state <= 6'h0;
+        mcdN_busy           <= 1'b0;
+        mcdN_wait_cnt       <= 4'h0;
+        mcdN_start_pulse_r  <= 1'b0;
+        mcdN_all_done_prev  <= 1'b0;
+    end else begin
+        mcdN_start_pulse_r <= 1'b0;
+        mcdN_all_done_prev <= mcdN_busy & mcdN_all_done;
+
+        if (in_compress_state && !compress_done_for_curr && !mcdN_busy) begin
+            // Newly in a compress state (either just entered, or moved from a
+            // different compress state) — launch a fresh mcdN run.
+            mcdN_busy     <= 1'b1;
+            mcdN_wait_cnt <= 4'h0;
+        end else if (mcdN_busy) begin
+            if (mcdN_wait_cnt < 4'd4) begin
+                mcdN_wait_cnt <= mcdN_wait_cnt + 1'b1;
+            end else if (mcdN_wait_cnt == 4'd4) begin
+                mcdN_start_pulse_r <= 1'b1;
+                mcdN_wait_cnt      <= mcdN_wait_cnt + 1'b1;
+            end else if (mcdN_done_edge) begin
+                mcdN_busy           <= 1'b0;
+                compress_done       <= 1'b1;
+                compress_done_state <= state;
+            end
+        end
+    end
+end
+
+// mc_stall: combinational so it fires from the first cycle state==compress.
+wire mc_stall = in_compress_state & ~compress_done_for_curr;
+// mc_done_pulse: 1-cycle pulse when mcdN finishes — drives dout valid + latch.
+wire mc_done_pulse = mcdN_done_edge;
+
+// Phase B v1 debug removed; mc FSM kept for future integration once the
+// stall corruption (suspected BRAM collisions / pipeline interaction) is
+// understood. mcdN_du_lo/hi are unused — dout still sources butterfly quo.
+
+// -----------------------------------------------------------------------------
+// Two masked_compress_dN_full instances — lo and hi halves of the coefficient
+// pair, mirroring Phase A v2's two-instance pattern. Inputs are the
+// arithmetic-share differences already computed for Phase A (mcd1_d_p_lo/hi
+// etc.) — those signals are combinational from rdata_RAM_mux*_r1, so they
+// reflect whatever the current state mux returns. During the FSM stall at
+// state==0x2c/0x2d, the mux holds the right RAM2/RAM3 vs RAM4 pair.
+// -----------------------------------------------------------------------------
+wire [10:0] mcdN_q_p_lo, mcdN_q_m_lo;
+wire [10:0] mcdN_q_p_hi, mcdN_q_m_hi;
+
+(* keep_hierarchy = "TRUE" *) masked_compress_dN_full #(
+    .D                   (MCDN_D),
+    .Q                   (13'd3329),
+    .PARAM_WIDTH         (MCDN_PARAM_WIDTH),
+    .N_SHARES            (MCDN_N_SHARES),
+    .N_STAGES            (MCDN_N_STAGES),
+    .X2X_RND_SHARES      (MCDN_X2X_RND_SHARES),
+    .X2X_RND_SHARES_8bit (MCDN_X2X_RND_SHARES_8bit),
+    .LD_RND_TRI          (MCDN_LD_RND_TRI),
+    .LD_RND_BOX          (MCDN_LD_RND_BOX)
+) u_mcdN_du_lo (
+    .clk                  (clk),
+    .rst_n                (mcd1_rst_n),
+    .start                (mcdN_start_pulse_r),
+    .done                 (mcdN_done_lo),
+    .c_p                  (mcd1_d_p_lo),
+    .c_m                  (mcd1_d_m_lo),
+    .fresh_rnd_shares     (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit),
+    .ld_rnd_tri           (mcdN_ld_rnd_tri),
+    .ld_rnd_box           (mcdN_ld_rnd_box),
+    .ld_rnd_and12         (mcdN_ld_rnd_and12),
+    .q_p                  (mcdN_q_p_lo),
+    .q_m                  (mcdN_q_m_lo)
+);
+
+(* keep_hierarchy = "TRUE" *) masked_compress_dN_full #(
+    .D                   (MCDN_D),
+    .Q                   (13'd3329),
+    .PARAM_WIDTH         (MCDN_PARAM_WIDTH),
+    .N_SHARES            (MCDN_N_SHARES),
+    .N_STAGES            (MCDN_N_STAGES),
+    .X2X_RND_SHARES      (MCDN_X2X_RND_SHARES),
+    .X2X_RND_SHARES_8bit (MCDN_X2X_RND_SHARES_8bit),
+    .LD_RND_TRI          (MCDN_LD_RND_TRI),
+    .LD_RND_BOX          (MCDN_LD_RND_BOX)
+) u_mcdN_du_hi (
+    .clk                  (clk),
+    .rst_n                (mcd1_rst_n),
+    .start                (mcdN_start_pulse_r),
+    .done                 (mcdN_done_hi),
+    .c_p                  (mcd1_d_p_hi),
+    .c_m                  (mcd1_d_m_hi),
+    .fresh_rnd_shares     (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit),
+    .ld_rnd_tri           (mcdN_ld_rnd_tri),
+    .ld_rnd_box           (mcdN_ld_rnd_box),
+    .ld_rnd_and12         (mcdN_ld_rnd_and12),
+    .q_p                  (mcdN_q_p_hi),
+    .q_m                  (mcdN_q_m_hi)
+);
+
+// Cleartext compress bits at the module boundary (XOR of Boolean shares)
+wire [10:0] mcdN_du_lo = mcdN_q_p_lo ^ mcdN_q_m_lo;
+wire [10:0] mcdN_du_hi = mcdN_q_p_hi ^ mcdN_q_m_hi;
+
+// Latch the cleartext compress output at the mc_done_pulse moment so that
+// the dout case-statement (which fires on state_r13==0x2c/0x2d every cycle
+// during the stall) can read a stable value.
+reg [10:0] mcdN_du_lo_latched, mcdN_du_hi_latched;
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        mcdN_du_lo_latched <= 11'h0;
+        mcdN_du_hi_latched <= 11'h0;
+    end else if (mc_done_pulse) begin
+        mcdN_du_lo_latched <= mcdN_du_lo;
+        mcdN_du_hi_latched <= mcdN_du_hi;
+    end
+end
 
 reg [7:0] raddr_RAM0;
 reg [5:0] raddr_RAM1;
@@ -554,8 +765,12 @@ always @(posedge clk) case(state_r3)
 			default : in1_butt <= {din[9:5],7'b0,din[4:0]};
 		endcase
 	end
-	// Stage 3 unmask: dout critical states. Load unmasked polynomial data so
-	// butterfly's quotient compute produces correct (unmasked) dout bits.
+	// Stage 3 unmask: dout critical states. Load unmasked polynomial data
+	// so butterfly's quotient produces correct dout bits.
+	// Phase B viability test (May 2026) showed loading shares here breaks
+	// K because RAM2/RAM3 contents at these addresses feed the hash chain.
+	// Closing this leak (Phase B) requires routing masked Barrett output to
+	// both dout AND wdata_RAM0/1 — deferred (~3 weeks effort).
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
 		in0_butt <= unmasked_mux0_r1;
 		in1_butt <= unmasked_mux1_r1;
@@ -962,7 +1177,12 @@ always @(*) case(state_r13)
 		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 	end
-	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
+	// DEBUG: revert to butterfly quo while isolating mcdN bug
+	6'h 2c, 6'h 2d : begin
+		wdata_RAM0 = {1'b0, quo1_butt_r1, 1'b0, quo0_butt_r1};
+		wdata_RAM1 = {1'b0, quo1_butt_r1, 1'b0, quo0_butt_r1};
+	end
+	6'h 38, 6'h 39 : begin
 		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 	end
@@ -1047,24 +1267,15 @@ always @(posedge clk) case(state_r1)
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 : req_noise_done <= raddr_RAM2 == 6'h 3f ? 1'h 1 : req_noise_done;
 	6'h 2c, 6'h 38 : req_noise_done <= 1'h 0; 
 endcase
-// Step 3+5 Phase A v2: ena_sft must be delayed by 5 cycles so it doesn't
-// fire while the last 5 cycles of v2's m_dec emission are still writing
-// into `m` (over in Kyber_Server_masked.v). The if-else in the m-update
-// gives ena_sft priority — if ena_sft fires during m_dec, m_dec writes are
-// dropped, corrupting the message and the eventual shared key.
-reg ena_sft_raw;
-reg ena_sft_d1, ena_sft_d2, ena_sft_d3, ena_sft_d4;
+// Phase A v2: ena_sft restored to v1 timing (state_r3 + 1 reg). Analysis
+// shows ena_sft (state_r3==0x36/0x37) and m_ena (state_r13_d6==0x1d/0x1e)
+// fire in DIFFERENT NTT calls — they cannot overlap. Earlier 4-cycle delay
+// was based on a wrong assumption and only shifted timing without changing
+// total pulse count.
 always @(posedge clk) case(state_r3)
-	6'h 36, 6'h 37 : ena_sft_raw <= 1'h 1;
-	default : ena_sft_raw <= 1'h 0;
+	6'h 36, 6'h 37 : ena_sft <= 1'h 1;
+	default : ena_sft <= 1'h 0;
 endcase
-always @(posedge clk) begin
-	ena_sft_d1 <= ena_sft_raw;
-	ena_sft_d2 <= ena_sft_d1;
-	ena_sft_d3 <= ena_sft_d2;
-	ena_sft_d4 <= ena_sft_d3;
-	ena_sft    <= ena_sft_d4;
-end
 always @(*) case(state_r2)
 	5'h b, 6'h 26 : fifo0_req = 1'h 1;
 	default : fifo0_req = 1'h 0;
@@ -1078,7 +1289,7 @@ endcase
 always @(*) begin
 	if(state_r2 == 5'h f || state_r2 == 5'h 10 || state_r2 == 6'h 30 || state_r13 == 6'h 2c || state_r13 == 6'h 2d)
 		req_D0 = 1'h 1;
-	else 
+	else
 		req_D0 = 1'h 0;
 end
 always @(*) begin
@@ -1121,9 +1332,10 @@ always @(posedge clk) case(state_r13)
 	// primary) instead of wdata_RAM0 directly. With non-zero mask, wdata_RAM0
 	// holds masked value (a+r); dout must emit unmasked truth (a).
 	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0_unmasked : 24'h 0;
+	// DEBUG: dout sourced from butterfly's known-correct quo to isolate mcdN bug.
 	6'h 2c, 6'h 2d : case(k)
-		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0],quo0_butt_r1[9:0]};
-		default : dout <= {quo1_butt_r1,quo0_butt_r1};
+		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0], quo0_butt_r1[9:0]};
+		default      : dout <= {quo1_butt_r1,       quo0_butt_r1};
 	endcase
 	6'h 38, 6'h 39 : case(k)
 		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[3:0],quo0_butt_r1[3:0]};
@@ -1135,7 +1347,7 @@ endcase
 always @(posedge clk) case(state_r13)
 	5'h c : valid <= ctr_col_r12 == k_1 ? 1'h 1 : 1'h 0;
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : valid <= 1'h 1;
-	default : valid <= 1'h 0;
+	default        : valid <= 1'h 0;
 endcase
 always @(posedge clk) begin
 	if(start)
