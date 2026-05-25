@@ -14,6 +14,7 @@ module NTT_core_Client_masked(
 	input [24:0] din,
 	input fifo0_empty, fifo1_empty, fifo1_full,
 	input [3:0] m_bits,
+	input phase_reseed,            // Step 9: rising edge perturbs mask PRNG state
 	output reg ready_u, ready_c,
 	output reg fifo0_req,
 	output fifo1_req_r9,
@@ -85,15 +86,18 @@ wire        req_x4_sampling =
      | (state_r13 == 5'h  a) | (state_r13 == 5'h  b)
      | (state_r13 == 5'h 14) | (state_r13 == 5'h 15);
 
+// Step 9: SEEDs updated to be non-overlapping with Server seeds and to
+// have pairwise Hamming distances >= 13.
 (* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo_x4 #(
-    .SEED0 (32'hFEEDFACE),
-    .SEED1 (32'h5A5A5A5A),
-    .SEED2 (32'hA5A5A5A5),
-    .SEED3 (32'h13371337)
+    .SEED0 (32'h351DA98E),
+    .SEED1 (32'hC97624BF),
+    .SEED2 (32'h5E1F8B62),
+    .SEED3 (32'h82B7E0D5)
 ) u_mask (
     .clk_i           (clk),
     .reset_i         (~rst),
     .ntt_call_start  (ntt_call_start_pulse),
+    .phase_reseed    (phase_reseed),
     .req             (req_x4_sampling),
     .valid           (mask_ready),
     .valid_next      (mask_ready_next),

@@ -670,6 +670,10 @@ NTT_core_Server_masked ntt(
 .fifo1_empty(ofifo1_empty),
 .fifo1_full(ofifo1_full),
 .DFIFO0_full_eff(DFIFO0_full_eff),
+// Step 9: phase_reseed perturbs mask_polyfifo_x4's PRNG state on every
+// new Keccak instance. keccak_init pulses naturally mark phase boundaries
+// (new noise polynomial, new hash, new matrix-A block) — drive directly.
+.phase_reseed(keccak_init),
 .fifo0_req(ofifo0_req),
 .fifo1_req_r9(ofifo1_req),
 .ena_sft(ena_sft),

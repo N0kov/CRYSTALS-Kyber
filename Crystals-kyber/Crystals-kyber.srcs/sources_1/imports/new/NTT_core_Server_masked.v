@@ -21,6 +21,7 @@ module NTT_core_Server_masked(
 	input [3:0] m_bits,
 	input DFIFO0_full_eff,
 	input ready_c,
+	input phase_reseed,            // Step 9: rising edge perturbs mask PRNG state
 	output reg fifo0_req,
 	output fifo1_req_r9,
 	output reg req_D0, req_D1,
@@ -125,15 +126,22 @@ wire        req_x4_sampling =
      | (state_r13 == 6'h 2a) | (state_r13 == 6'h 2b)
      | (state_r13 == 6'h 34) | (state_r13 == 6'h 35);
 
+// Step 9: SEEDs updated for two reasons.
+//   1. Prior Server.SEED2 (FEEDFACE) was identical to Client.SEED0 — the two
+//      lanes produced bitwise-identical mask streams across sides. New
+//      Server seeds are non-overlapping with Client seeds.
+//   2. Pairwise Hamming distances are kept >= 13 to avoid XORShifter
+//      correlated early outputs.
 (* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo_x4 #(
-    .SEED0 (32'hCAFEBABE),
-    .SEED1 (32'hDEADBEEF),
-    .SEED2 (32'hFEEDFACE),
-    .SEED3 (32'hBAADF00D)
+    .SEED0 (32'h7B9CE5D1),
+    .SEED1 (32'h18347AF2),
+    .SEED2 (32'hE6CB8523),
+    .SEED3 (32'hA45F1CB8)
 ) u_mask (
     .clk_i           (clk),
     .reset_i         (~rst),                 // active-low reset
     .ntt_call_start  (ntt_call_start_pulse),
+    .phase_reseed    (phase_reseed),
     .req             (req_x4_sampling),
     .valid           (mask_ready),
     .valid_next      (mask_ready_next),

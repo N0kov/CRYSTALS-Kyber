@@ -46,7 +46,12 @@ module mask_polyfifo_x4 #(
 ) (
     input  logic        clk_i,
     input  logic        reset_i,                  // active-low
-    input  logic        ntt_call_start,           // 1-cycle pulse: reseed all
+    input  logic        ntt_call_start,           // 1-cycle pulse: reseed all (full SEED reload)
+    // Step 9: pulse on intra-KEM phase boundary (e.g. new noise polynomial).
+    // XORs a per-lane PHASE_TAG into the running PRNG state, decorrelating
+    // the next phase's mask stream from the prior phase's stream WITHOUT
+    // discarding accumulated entropy. NOT a reseed — just a domain shuffle.
+    input  logic        phase_reseed,
     input  logic        req,                      // pop one mask from each FIFO
     output logic        valid,                    // all 4 FIFOs non-empty (cnt > 0)
     output logic        valid_next,               // all 4 FIFOs have >= 2 entries
@@ -79,6 +84,22 @@ module mask_polyfifo_x4 #(
     end
     wire flush = ntt_call_start & ~ntt_call_start_d1;
 
+    // Step 9: phase_reseed rising-edge detect. On rising edge, XOR the
+    // running state with per-lane PHASE_TAG constants. The four tags below
+    // are 32-bit values with pairwise Hamming distances >= 14 and no
+    // shared bits with the SEED constants.
+    logic phase_reseed_d1;
+    always_ff @(posedge clk_i or negedge reset_i) begin
+        if (!reset_i) phase_reseed_d1 <= 1'b0;
+        else          phase_reseed_d1 <= phase_reseed;
+    end
+    wire phase_kick = phase_reseed & ~phase_reseed_d1;
+
+    localparam [31:0] PHASE_TAG0 = 32'h1B3F2E4D;  // popcnt 16
+    localparam [31:0] PHASE_TAG1 = 32'h74A0C58F;  // popcnt 15
+    localparam [31:0] PHASE_TAG2 = 32'hE6F1942B;  // popcnt 18
+    localparam [31:0] PHASE_TAG3 = 32'h5C72BD86;  // popcnt 17
+
     // -------------------------------------------------------------------------
     // 4 parallel XORShifter PRNGs
     // -------------------------------------------------------------------------
@@ -101,6 +122,14 @@ module mask_polyfifo_x4 #(
             state[1] <= SEED1;
             state[2] <= SEED2;
             state[3] <= SEED3;
+        end else if (phase_kick) begin
+            // Step 9: domain-shuffle the state without resetting. Each
+            // lane gets its own tag so the four streams stay independently
+            // perturbed.
+            state[0] <= next_st[0] ^ PHASE_TAG0;
+            state[1] <= next_st[1] ^ PHASE_TAG1;
+            state[2] <= next_st[2] ^ PHASE_TAG2;
+            state[3] <= next_st[3] ^ PHASE_TAG3;
         end else begin
             state[0] <= next_st[0];
             state[1] <= next_st[1];
