@@ -106,7 +106,24 @@ reg req_D1_r1;
 wire DFIFO1_empty, DFIFO1_full;
 
 reg [21:0] cmp0, cmp1;
-reg equal;
+// Step 8: FO ciphertext-compare result is now Boolean-shared. equal_p XOR
+// equal_m == cleartext equal. Probing either share alone reveals nothing
+// about the per-cycle accumulated EQ state. Reconstruction happens at the
+// FSM consumer (state 0x30) only.
+//
+// SCOPE NOTE: cmp0 and cmp1 (the values being compared) are still cleartext
+// because they come from DFIFO output / NTT_dout, which are cleartext until
+// Step 7 (masked Keccak) lands. This Step-8 scaffold protects the
+// ACCUMULATOR register; once Step 7 makes cmp0/cmp1 shared, the same
+// scaffold extends to a fully-shared compare gadget.
+reg equal_p, equal_m;
+wire equal = equal_p ^ equal_m;  // unmask at FSM boundary
+
+// Per-cycle re-masking randomness: 16-bit Galois LFSR (taps 16,14,13,11).
+// Standalone (no coupling with mask_polyfifo_x4, which is per-NTT-call scope).
+// LSB drives re-masking; one bit per compare cycle is sufficient.
+reg [15:0] eq_lfsr = 16'hACE1;
+wire eq_rand_bit = eq_lfsr[0];
 
 wire [23:0] encode_din;
 reg encode_wen;
@@ -577,13 +594,38 @@ always @(*) case({req_D0_r1&~ready_t,req_D1_r1&CCA_enc})
 		cmp1 = NTT_dout;
 	end
 endcase
+// Step 8: Boolean-shared `equal` accumulator. The cleartext update rule was
+//   equal_new = (cmp0 == cmp1) ? equal_old : 1'b0
+// In Boolean shares with re-masking by a fresh r per cycle:
+//   equal_p_new = ((cmp0 == cmp1) & equal_p_old) XOR r
+//   equal_m_new = ((cmp0 == cmp1) & equal_m_old) XOR r
+// Reconstruction: equal_p_new XOR equal_m_new
+//   = ((cmp0 == cmp1) & (equal_p_old XOR equal_m_old)) XOR r XOR r
+//   = (cmp0 == cmp1) & equal_old        ✓
+// Probing equal_p_new: function of (equal_p_old, cmp0==cmp1, r). r uniform →
+// equal_p_new uniform given the rest. d=1 probing safe (modulo cleartext
+// inputs, which are addressed by Step 7).
 always @(posedge clk) begin
-	if(start)
-		equal <= 1'h 1;
-	else if(req_D0_r1&~ready_t | req_D1_r1&CCA_enc)
-		equal <= cmp0 == cmp1 ? equal : 1'h 0;
+	if(start) begin
+		equal_p <= 1'b1;   // initial equal = 1 → trivial split
+		equal_m <= 1'b0;
+	end
+	else if(req_D0_r1&~ready_t | req_D1_r1&CCA_enc) begin
+		equal_p <= ((cmp0 == cmp1) & equal_p) ^ eq_rand_bit;
+		equal_m <= ((cmp0 == cmp1) & equal_m) ^ eq_rand_bit;
+	end
+	else begin
+		equal_p <= equal_p;
+		equal_m <= equal_m;
+	end
+end
+
+// LFSR advances continuously so each compare cycle gets a fresh r-bit.
+always @(posedge clk) begin
+	if(rst)
+		eq_lfsr <= 16'hACE1;
 	else
-		equal <= equal;
+		eq_lfsr <= {eq_lfsr[14:0], eq_lfsr[15] ^ eq_lfsr[13] ^ eq_lfsr[12] ^ eq_lfsr[10]};
 end
 
 always @(posedge clk) begin
