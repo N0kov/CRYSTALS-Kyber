@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7a35tcsg324-1" LaunchTime="1777944187" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/Kyber_Client.dcp">
-  <File Type="RDS-DCP" Name="Kyber_Client.dcp"/>
-  <File Type="RDS-UTIL-PB" Name="Kyber_Client_utilization_synth_1.pb"/>
-  <File Type="PA-TCL" Name="Kyber_Client.tcl"/>
-  <File Type="RDS-UTIL" Name="Kyber_Client_utilization_synth_1.rpt"/>
-  <File Type="REPORTS-TCL" Name="Kyber_Client_reports.tcl"/>
-  <File Type="RDS-RDS" Name="Kyber_Client.vds"/>
+<GenRun Id="synth_1" LaunchPart="xc7a35tcsg324-1" LaunchTime="1779667901" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/Kyber_Client.dcp">
+  <File Type="RDS-DCP" Name="Kyber_top.dcp"/>
+  <File Type="RDS-UTIL-PB" Name="Kyber_top_protected_utilization_synth.pb"/>
+  <File Type="PA-TCL" Name="Kyber_top.tcl"/>
+  <File Type="RDS-UTIL" Name="Kyber_top_protected_utilization_synth.rpt"/>
+  <File Type="REPORTS-TCL" Name="Kyber_top_reports.tcl"/>
+  <File Type="RDS-RDS" Name="Kyber_top.vds"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
     <Filter Type="Srcs"/>
     <File Path="$PSRCDIR/sources_1/imports/new/Kyber_Server.v">
@@ -246,7 +246,7 @@
     </File>
     <Config>
       <Option Name="DesignMode" Val="RTL"/>
-      <Option Name="TopModule" Val="Kyber_Client"/>
+      <Option Name="TopModule" Val="Kyber_top"/>
     </Config>
   </FileSet>
   <FileSet Name="constrs_in" Type="Constrs" RelSrcDir="$PSRCDIR/constrs_1" RelGenDir="$PGENDIR/constrs_1">
@@ -289,30 +289,30 @@
     <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2017"/>
     <Step Id="synth_design"/>
   </Strategy>
+  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_1"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_4"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_2"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_11"/>
+  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_6"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_5"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_5"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_3"/>
   <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_2"/>
-  <BlockFileSet Type="BlockSrcs" Name="mult_gen_0"/>
-  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_5"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_2"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_0"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_6"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_8"/>
   <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_7"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_11"/>
-  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_0"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_3"/>
-  <BlockFileSet Type="BlockSrcs" Name="dist_mem_gen_6"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_9"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_4"/>
-  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_2"/>
-  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_0"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_7"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_5"/>
   <BlockFileSet Type="BlockSrcs" Name="fifo_generator_6"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_4"/>
+  <BlockFileSet Type="BlockSrcs" Name="mult_gen_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_2"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_1"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_3"/>
+  <BlockFileSet Type="BlockSrcs" Name="blk_mem_gen_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="fifo_generator_8"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_6"/>
   <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_8"/>
+  <BlockFileSet Type="BlockSrcs" Name="c_shift_ram_9"/>
 </GenRun>

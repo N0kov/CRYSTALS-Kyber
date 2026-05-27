@@ -49,5 +49,29 @@ if ! diff -q $RUN/output_cli_prot.txt $GOLD/k4_ref_cli.txt >/dev/null; then
     exit 3
 fi
 
-echo "[regression] PASS: server and client streams match gold (400/400 lines, identical)"
+# Share-invariant break (Step 0.5 of hardening plan).
+# The shadow comparator in Kyber_Server_masked.v asserts per-cycle:
+#   (primary_share - mask_share) mod q == shadow_unmasked
+# on all three RAM write-data paths. Any break is logged as
+#   [INV_BROKEN_R0/R1/R2 ...] / [INV_FIRST_BREAK_R0/R1/R2 ...]
+# Even if the external KAT happens to match by coincidence, an invariant
+# break means the masking scheme is internally inconsistent — fail the run.
+if grep -qE "\[INV_FIRST_BREAK_R[012]|\[INV_BROKEN_R[012]" $PROJ/regression_run.log; then
+    echo "[regression] FAIL: share invariant broken (mask scheme internally inconsistent)"
+    grep -E "\[INV_FIRST_BREAK_R[012]|\[INV_BROKEN_R[012]" $PROJ/regression_run.log | head -10
+    exit 6
+fi
+
+# Step 1 mask-FIFO-underrun invariant. mask_polyfifo_x4 must never run dry
+# during a sampling state; a stale mask reused at the sampling site silently
+# breaks d=1 probing security (the KAT cannot detect it because same mask
+# added then subtracted still cancels). NTT_core_*_masked.v logs the first
+# such event as INV_FIRST_BREAK_MASK_{S,C}.
+if grep -qE "\[INV_FIRST_BREAK_MASK_[SC]" $PROJ/regression_run.log; then
+    echo "[regression] FAIL: mask_polyfifo_x4 underran (stale mask reused — d=1 broken)"
+    grep -E "\[INV_FIRST_BREAK_MASK_[SC]" $PROJ/regression_run.log | head -10
+    exit 7
+fi
+
+echo "[regression] PASS: server and client streams match gold (400/400 lines, identical) + share invariant holds + mask FIFO never underran"
 exit 0

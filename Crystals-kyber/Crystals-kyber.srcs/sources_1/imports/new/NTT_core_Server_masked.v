@@ -21,6 +21,7 @@ module NTT_core_Server_masked(
 	input [3:0] m_bits,
 	input DFIFO0_full_eff,
 	input ready_c,
+	input phase_reseed,            // Step 9: rising edge perturbs mask PRNG state
 	output reg fifo0_req,
 	output fifo1_req_r9,
 	output reg req_D0, req_D1,
@@ -37,6 +38,7 @@ reg [5:0] next_state, state;
 reg [5:0] state_r1, state_r2, state_r3;
 wire [5:0] state_r13;
 reg [5:0] state_r13_d1, state_r13_d2, state_r13_d3, state_r13_d4, state_r13_d5;
+reg [5:0] state_r13_d6, state_r13_d7, state_r13_d8;
 reg wen_RAM2_decomp, wen_RAM3_decomp;
 reg [3:0] ctr_NTT;
 reg [1:0] ctr_col, ctr_col_r1;
@@ -46,7 +48,13 @@ wire [1:0] k_1;
 
 wire [5:0] b0, b1, b2, b3;
 wire [2:0] samp0, samp1, samp2, samp3;
-reg [11:0] samp0_q, samp1_q, samp2_q, samp3_q;
+// Step 4: replaces samp0..3_q (cleartext binomial sample, 1-cycle stable
+// register — primary DPA target). samp{0..3}_p_q holds the masked sample
+// directly (samp_corrected + mask_used) mod Q; samp{0..3}_m_q holds the
+// mask used. Recombination (samp_p_q - samp_m_q) mod Q gives the original
+// cleartext value, so the share-sum invariant is preserved.
+reg [11:0] samp0_p_q, samp1_p_q, samp2_p_q, samp3_p_q;
+reg [11:0] samp0_m_q, samp1_m_q, samp2_m_q, samp3_m_q;
 reg fifo1_req, fifo1_req_r10;
 reg req_noise, req_noise_r1, req_noise_r2;
 wire req_noise_r12;
@@ -85,13 +93,21 @@ wire [11:0] decomp0_butt_m, decomp1_butt_m;
 wire [23:0] rdata_RAM0_m, rdata_RAM1_m, rdata_RAM2_m, rdata_RAM3_m;
 wire [47:0] rdata_RAM4_m;
 
-// Stage 2 mask source: latch a single 12-bit mask at start of each NTT call,
-// hold steady for the rest of the call (constant polynomial mask). Stage 3
-// will replace this with per-coefficient mask (256 unique values).
-wire [11:0] mask_const_real;
-// Phase 2 Stage C: real CSPRNG mask enabled. Was forced to 12'h0 during
-// Gate 1 architecture validation; now uses mask_polyfifo's mask_const_real.
-wire [11:0] mask_const = mask_const_real;
+// Step 1 (per-coefficient masking): replace single-mask polyfifo with the
+// 4-way mask_polyfifo_x4, which emits four fresh, independent uniform-mod-Q
+// 12-bit masks per cycle. Each sampling cycle (state_r13 in the sampling
+// set below) pulses req to advance the per-lane FIFOs by one. The four
+// masks consumed at sampling-state cycle T are used:
+//   - lane 0 (mask_for_samp0) → samp0_masked + wdata_RAM*_m[ 11: 0]
+//   - lane 1 (mask_for_samp1) → samp1_masked + wdata_RAM*_m[23:12]
+//   - lane 2 (mask_for_samp2) → samp2_masked + wdata_RAM2_m[35:24]
+//   - lane 3 (mask_for_samp3) → samp3_masked + wdata_RAM2_m[47:36]
+wire [11:0] mask_for_samp0, mask_for_samp1, mask_for_samp2, mask_for_samp3;
+wire [11:0] mask_for_samp0_next, mask_for_samp1_next, mask_for_samp2_next, mask_for_samp3_next;
+wire        mask_ready_next;  // Step 4: all 4 FIFOs have cnt >= 2 (next_mask valid)
+// Legacy alias kept for any straggler debug code that still references
+// `mask_const`. New code must use the per-sample mask wires above.
+wire [11:0] mask_const = mask_for_samp0;
 wire        mask_ready;
 // Single-cycle ntt_call_start pulse on rising edge of `start`.
 reg         start_d1;
@@ -101,14 +117,437 @@ always @(posedge clk) begin
 end
 wire        ntt_call_start_pulse = start & ~start_d1;
 
-(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo #(.USE_TRNG(0), .SEED_VAL(32'hCAFEBABE)) u_mask (
-    .clk_i             (clk),
-    .reset_i           (~rst),                  // mask_polyfifo uses active-low reset
-    .avalanche_noise_i (1'b0),
-    .ntt_call_start    (ntt_call_start_pulse),
-    .ready             (mask_ready),
-    .mask_out          (mask_const_real)
+// req_x4_sampling: high at every state_r13 cycle that writes a freshly-sampled
+// coefficient to a RAM_m mask-side location. Mirrors the case-labels in the
+// wdata_RAM*_m blocks below (lines ~1071-1140). 10 states total.
+wire        req_x4_sampling =
+       (state_r13 == 6'h 20) | (state_r13 == 6'h 21) | (state_r13 == 6'h 22)
+     | (state_r13 == 6'h 23) | (state_r13 == 6'h 3e) | (state_r13 == 6'h 3f)
+     | (state_r13 == 6'h 2a) | (state_r13 == 6'h 2b)
+     | (state_r13 == 6'h 34) | (state_r13 == 6'h 35);
+
+// Step 9: SEEDs updated for two reasons.
+//   1. Prior Server.SEED2 (FEEDFACE) was identical to Client.SEED0 — the two
+//      lanes produced bitwise-identical mask streams across sides. New
+//      Server seeds are non-overlapping with Client seeds.
+//   2. Pairwise Hamming distances are kept >= 13 to avoid XORShifter
+//      correlated early outputs.
+(* KEEP_HIERARCHY = "TRUE" *) mask_polyfifo_x4 #(
+    .SEED0 (32'h7B9CE5D1),
+    .SEED1 (32'h18347AF2),
+    .SEED2 (32'hE6CB8523),
+    .SEED3 (32'hA45F1CB8)
+) u_mask (
+    .clk_i           (clk),
+    .reset_i         (~rst),                 // active-low reset
+    .ntt_call_start  (ntt_call_start_pulse),
+    .phase_reseed    (phase_reseed),
+    .req             (req_x4_sampling),
+    .valid           (mask_ready),
+    .valid_next      (mask_ready_next),
+    .mask0           (mask_for_samp0),
+    .mask1           (mask_for_samp1),
+    .mask2           (mask_for_samp2),
+    .mask3           (mask_for_samp3),
+    .mask0_next      (mask_for_samp0_next),
+    .mask1_next      (mask_for_samp1_next),
+    .mask2_next      (mask_for_samp2_next),
+    .mask3_next      (mask_for_samp3_next)
 );
+
+// Step 1 invariant: mask_polyfifo_x4 must never underrun during a sampling
+// state. An underrun means a stale mask is reused at the sampling site, which
+// silently breaks d=1 probing security (two coefficients masked with the same
+// r → their difference reveals the unmasked difference). The KAT itself
+// cannot detect this — same mask added then subtracted still cancels — so we
+// enforce it as a logged invariant that the regression script greps for.
+reg inv_mask_underrun_S_flag = 1'b0;
+always @(posedge clk) begin
+    // Step 4 strengthens the invariant: when req_x4_sampling fires, BOTH the
+    // current head AND the next-head must be valid (cnt >= 2 per lane) because
+    // the samp_p_q register reads next_mask on this exact edge. cnt < 2 would
+    // mean next_mask is stale fifo_mem and not a fresh PRNG sample → stale
+    // mask reuse → d=1 break (same as the Step 1 cnt > 0 condition).
+    if (!rst && req_x4_sampling && !mask_ready_next) begin
+        if (!inv_mask_underrun_S_flag) begin
+            $display("[INV_FIRST_BREAK_MASK_S t=%0t state_r13=%h] mask_polyfifo_x4 underrun (cnt<2; next_mask invalid) — stale mask reused at sampling site (d=1 broken)", $time, state_r13);
+            inv_mask_underrun_S_flag <= 1'b1;
+        end
+    end
+end
+
+// =============================================================================
+// Step 3+5 Phase A v1: masked d=1 compression for m_dec (states 0x1d/0x1e).
+//
+// Replaces the leaky butterfly-quotient path with masked_compress_d1, fed
+// arithmetic shares directly from the RAM mux reads. X2X (inside the wrapper)
+// produces Boolean shares of the m_dec bit with 10-cycle pipeline latency,
+// which matches the existing butterfly's state_r3 -> state_r13 alignment.
+//
+// v1 limitations (documented):
+//   - Cleartext threshold inside the wrapper (XOR of Boolean shares) — see
+//     masked_compress_d1.sv header comment. v2 replaces with masked SecAdd
+//     compare.
+//   - Single shared PRNG feeds both lo/hi instances — they reuse randomness.
+//     v2 should use independent PRNGs per half.
+//   - PRNG output is REGISTERED only when prng_done fires (one cycle per
+//     fill), so X2X sees the same randomness for many cycles between fills.
+//     Acceptable for v1 (functional correctness preserved); v2 should use
+//     a streaming PRNG that provides fresh randomness every cycle.
+//
+// Plan reference: plan_masked_ntt_phase3a_design.md
+// =============================================================================
+
+localparam MCD1_PARAM_WIDTH = 13;
+localparam MCD1_N_SHARES    = 2;
+localparam MCD1_N_STAGES    = 4;
+localparam MCD1_RND_SHARES  = 2 * (MCD1_N_SHARES - 1) + 2 * MCD1_N_SHARES
+                              + 4 * (MCD1_N_SHARES * (MCD1_N_SHARES - 1) / 2);
+localparam MCD1_RND_SHARES_8bit = 2 * MCD1_N_STAGES * 3
+                                  * (MCD1_N_SHARES * (MCD1_N_SHARES - 1) / 2);
+localparam MCD1_NB_SEEDS    = 6;
+localparam MCD1_LSFR_WIDTH  = 32;
+
+// Active-low reset for X2X / PRNG (their convention)
+wire mcd1_rst_n = ~rst;
+
+// PRNG: warms up at reset, then continuously refills.
+wire                            mcd1_prng_done;
+reg                             mcd1_prng_update;
+reg                             mcd1_prng_load_seed;
+// Note: unpacked arrays declared as reg/wire so plain Verilog accepts them.
+wire [MCD1_PARAM_WIDTH - 1 : 0] mcd1_rnd_shares_raw      [MCD1_RND_SHARES - 1 : 0];
+wire [7:0]                      mcd1_rnd_shares_8bit_raw [MCD1_RND_SHARES_8bit - 1 : 0];
+reg  [MCD1_PARAM_WIDTH - 1 : 0] mcd1_rnd_shares          [MCD1_RND_SHARES - 1 : 0];
+reg  [7:0]                      mcd1_rnd_shares_8bit     [MCD1_RND_SHARES_8bit - 1 : 0];
+
+// Hold the latest valid randomness across cycles. The PRNG's raw output is
+// zero except when prng_done is high; latch it then so X2X sees stable
+// randomness throughout the m_dec burst.
+integer mcd1_rnd_i;
+always @(posedge clk) begin
+    if (mcd1_prng_done) begin
+        for (mcd1_rnd_i = 0; mcd1_rnd_i < MCD1_RND_SHARES; mcd1_rnd_i = mcd1_rnd_i + 1)
+            mcd1_rnd_shares[mcd1_rnd_i] <= mcd1_rnd_shares_raw[mcd1_rnd_i];
+        for (mcd1_rnd_i = 0; mcd1_rnd_i < MCD1_RND_SHARES_8bit; mcd1_rnd_i = mcd1_rnd_i + 1)
+            mcd1_rnd_shares_8bit[mcd1_rnd_i] <= mcd1_rnd_shares_8bit_raw[mcd1_rnd_i];
+    end
+end
+
+// Drive load_seed once after reset; hold update_rnd high so PRNG continuously
+// refills (one fill ~5-10 cycles, then auto-restart since update_rnd stays high).
+reg mcd1_seed_done;
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        mcd1_seed_done      <= 1'b0;
+        mcd1_prng_load_seed <= 1'b0;
+        mcd1_prng_update    <= 1'b0;
+    end else begin
+        if (!mcd1_seed_done) begin
+            mcd1_prng_load_seed <= 1'b1;
+            mcd1_seed_done      <= 1'b1;
+        end else begin
+            mcd1_prng_load_seed <= 1'b0;
+            mcd1_prng_update    <= 1'b1;
+        end
+    end
+end
+
+PRNG_engine_STREAM #(
+    .PARAM_WIDTH    (MCD1_PARAM_WIDTH),
+    .LSFR_WIDTH     (MCD1_LSFR_WIDTH),
+    .SEED_WIDTH     (MCD1_NB_SEEDS * 128),
+    .N_SHARES       (MCD1_N_SHARES),
+    .RND_SHARES     (MCD1_RND_SHARES),
+    .RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_prng (
+    .clk            (clk),
+    .rst_n          (mcd1_rst_n),
+    .mod_type       (1'b1),         // prime mode
+    .conversion_type(1'b0),         // A2B
+    .dual_mode      (1'b0),         // single conversion at a time
+    .load_seed      (mcd1_prng_load_seed),
+    .update_rnd     (mcd1_prng_update),
+    .prng_done      (mcd1_prng_done),
+    .seed_in        ({MCD1_NB_SEEDS{128'h0123456789ABCDEF_FEDCBA9876543210}}),
+    .rnd_out_8bit   (mcd1_rnd_shares_8bit_raw),
+    .rnd_out        (mcd1_rnd_shares_raw)
+);
+
+// Share-wise differences: d = (c0 - c1) mod Q for each half.
+// Project convention: c0_p - c0_m mod Q = c0; same for c1.
+// Difference share: d_p = (c0_p - c1_p) mod Q, d_m = (c0_m - c1_m) mod Q.
+// Verify: d_p - d_m = (c0_p - c1_p) - (c0_m - c1_m) = c0 - c1 = d.
+function automatic [11:0] mod_q_sub12(input [11:0] a, input [11:0] b);
+    reg [12:0] diff;
+    begin
+        diff = {1'b0, a} + 13'h d01 - {1'b0, b};
+        mod_q_sub12 = (diff >= 13'h d01) ? diff[11:0] - 12'h d01 : diff[11:0];
+    end
+endfunction
+
+wire [11:0] mcd1_d_p_lo = mod_q_sub12(rdata_RAM_mux0_r1  [11:0],  rdata_RAM_mux1_r1  [11:0]);
+wire [11:0] mcd1_d_m_lo = mod_q_sub12(rdata_RAM_mux0_r1_m[11:0],  rdata_RAM_mux1_r1_m[11:0]);
+wire [11:0] mcd1_d_p_hi = mod_q_sub12(rdata_RAM_mux0_r1  [23:12], rdata_RAM_mux1_r1  [23:12]);
+wire [11:0] mcd1_d_m_hi = mod_q_sub12(rdata_RAM_mux0_r1_m[23:12], rdata_RAM_mux1_r1_m[23:12]);
+
+// Valid_data is high whenever state_r3 is one of the m_dec extraction states.
+// Output (valid_result) arrives 10 cycles later, matching state_r13.
+wire mcd1_valid_data = (state_r3 == 6'h 1d) || (state_r3 == 6'h 1e);
+
+wire mcd1_m_p_lo, mcd1_m_m_lo, mcd1_m_p_hi, mcd1_m_m_hi;
+wire mcd1_valid_result_lo, mcd1_valid_result_hi;
+
+(* keep_hierarchy = "TRUE" *) masked_compress_d1 #(
+    .HALFCYCLE          (1),
+    .PARAM_WIDTH        (MCD1_PARAM_WIDTH),
+    .Q                  (13'd3329),
+    .LO                 (13'd833),
+    .HI                 (13'd2497),
+    .N_SHARES           (MCD1_N_SHARES),
+    .N_STAGES           (MCD1_N_STAGES),
+    .X2X_RND_SHARES     (MCD1_RND_SHARES),
+    .X2X_RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_lo (
+    .clk                 (clk),
+    .rst_n               (mcd1_rst_n),
+    .c_p                 (mcd1_d_p_lo),
+    .c_m                 (mcd1_d_m_lo),
+    .valid_data          (mcd1_valid_data),
+    .ready_data          (),                   // back-pressure ignored in streaming
+    .ready_result        (1'b1),
+    .valid_result        (mcd1_valid_result_lo),
+    .m_p_o               (mcd1_m_p_lo),
+    .m_m_o               (mcd1_m_m_lo),
+    .fresh_rnd_shares    (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit)
+);
+
+(* keep_hierarchy = "TRUE" *) masked_compress_d1 #(
+    .HALFCYCLE          (1),
+    .PARAM_WIDTH        (MCD1_PARAM_WIDTH),
+    .Q                  (13'd3329),
+    .LO                 (13'd833),
+    .HI                 (13'd2497),
+    .N_SHARES           (MCD1_N_SHARES),
+    .N_STAGES           (MCD1_N_STAGES),
+    .X2X_RND_SHARES     (MCD1_RND_SHARES),
+    .X2X_RND_SHARES_8bit(MCD1_RND_SHARES_8bit)
+) u_mcd1_hi (
+    .clk                 (clk),
+    .rst_n               (mcd1_rst_n),
+    .c_p                 (mcd1_d_p_hi),
+    .c_m                 (mcd1_d_m_hi),
+    .valid_data          (mcd1_valid_data),
+    .ready_data          (),
+    .ready_result        (1'b1),
+    .valid_result        (mcd1_valid_result_hi),
+    .m_p_o               (mcd1_m_p_hi),
+    .m_m_o               (mcd1_m_m_hi),
+    .fresh_rnd_shares    (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit)
+);
+
+// Cleartext m_dec bits (XOR of Boolean shares — v1 boundary unmask).
+// At v1 these are the bits driven onto the m_dec port and packed into the
+// RAM writeback at state_r13 == 0x1d/0x1e. v2 keeps them shared longer.
+wire mcd1_bit_lo = mcd1_m_p_lo ^ mcd1_m_m_lo;
+wire mcd1_bit_hi = mcd1_m_p_hi ^ mcd1_m_m_hi;
+
+// =============================================================================
+// Step 3+5 Phase B v1: masked du compression at states 0x2c/0x2d (D=11 for k=4).
+//
+// Two masked_compress_dN_full instances (lo + hi halves) compute the
+// Kyber compression compress_q(c, 11) on arithmetic-share input. The FSM
+// stalls the parent state register at 0x2c/0x2d until the compute completes
+// (~150 cycles per state value).
+//
+// Output: cleartext 11-bit compress values per half (XOR of Boolean shares
+// at the module boundary — acceptable per XOR-3 ledger note since dout
+// goes to the public ciphertext stream).
+//
+// Plan reference: plan_masked_ntt_phaseB_design.md §11-12
+// =============================================================================
+
+localparam MCDN_D            = 11;
+localparam MCDN_PARAM_WIDTH  = 13;
+localparam MCDN_N_SHARES     = 2;
+localparam MCDN_N_STAGES     = 4;
+localparam MCDN_X2X_RND_SHARES      = 2 * (MCDN_N_SHARES - 1) + 2 * MCDN_N_SHARES
+                                      + 4 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_X2X_RND_SHARES_8bit = 2 * MCDN_N_STAGES * 3
+                                      * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_LD_RND_TRI = 2 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+localparam MCDN_LD_RND_BOX = (MCDN_N_STAGES - 1) * 3 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2)
+                             + 2 * (MCDN_N_SHARES * (MCDN_N_SHARES - 1) / 2);
+
+// Reuse the mcd1 PRNG randomness arrays (mcd1_rnd_shares*) — they refill on
+// prng_done and hold otherwise. This is acceptable for v1 first-order security
+// (same randomness reuse pattern as Phase A v1's mcd1).
+//
+// Slice randomness for the LD inputs:
+wire [MCDN_PARAM_WIDTH - 1 : 0] mcdN_ld_rnd_tri [MCDN_LD_RND_TRI - 1 : 0];
+wire [7:0]                      mcdN_ld_rnd_box [MCDN_LD_RND_BOX - 1 : 0];
+wire [11:0]                     mcdN_ld_rnd_and12;
+
+genvar gN;
+generate
+    for (gN = 0; gN < MCDN_LD_RND_TRI; gN = gN + 1) begin : g_mcdN_tri
+        assign mcdN_ld_rnd_tri[gN] = mcd1_rnd_shares[gN];
+    end
+    for (gN = 0; gN < MCDN_LD_RND_BOX; gN = gN + 1) begin : g_mcdN_box
+        assign mcdN_ld_rnd_box[gN] = mcd1_rnd_shares_8bit[gN];
+    end
+endgenerate
+assign mcdN_ld_rnd_and12 = mcd1_rnd_shares[MCDN_LD_RND_TRI][11:0];
+
+// -----------------------------------------------------------------------------
+// mc FSM — drives the masked compress runs and stalls the parent FSM
+//
+// Stall design: mc_stall is combinational from state and a "compress_done +
+// compress_done_state" pair. compress_done_state captures the state value the
+// most recent compress was done for. mc_stall is only deasserted if we're in
+// a compress state that has ALREADY been computed for. After state advances
+// past that, compress_done_state no longer matches, mc_stall goes high again
+// and a new compress starts.
+// -----------------------------------------------------------------------------
+wire in_compress_state = (state == 6'h 2c) || (state == 6'h 2d);
+
+reg       compress_done;
+reg [5:0] compress_done_state;
+reg       mcdN_busy;
+reg [3:0] mcdN_wait_cnt;
+reg       mcdN_start_pulse_r;
+wire      mcdN_done_lo, mcdN_done_hi;
+wire      mcdN_all_done = mcdN_done_lo & mcdN_done_hi;
+
+reg  mcdN_all_done_prev;
+wire mcdN_done_edge = mcdN_busy & mcdN_all_done & ~mcdN_all_done_prev;
+
+// "Compress is done for the state we're currently in" — release stall only then.
+wire compress_done_for_curr = compress_done & (state == compress_done_state);
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        compress_done       <= 1'b0;
+        compress_done_state <= 6'h0;
+        mcdN_busy           <= 1'b0;
+        mcdN_wait_cnt       <= 4'h0;
+        mcdN_start_pulse_r  <= 1'b0;
+        mcdN_all_done_prev  <= 1'b0;
+    end else begin
+        mcdN_start_pulse_r <= 1'b0;
+        mcdN_all_done_prev <= mcdN_busy & mcdN_all_done;
+
+        if (in_compress_state && !compress_done_for_curr && !mcdN_busy) begin
+            // Newly in a compress state (either just entered, or moved from a
+            // different compress state) — launch a fresh mcdN run.
+            mcdN_busy     <= 1'b1;
+            mcdN_wait_cnt <= 4'h0;
+        end else if (mcdN_busy) begin
+            if (mcdN_wait_cnt < 4'd4) begin
+                mcdN_wait_cnt <= mcdN_wait_cnt + 1'b1;
+            end else if (mcdN_wait_cnt == 4'd4) begin
+                mcdN_start_pulse_r <= 1'b1;
+                mcdN_wait_cnt      <= mcdN_wait_cnt + 1'b1;
+            end else if (mcdN_done_edge) begin
+                mcdN_busy           <= 1'b0;
+                compress_done       <= 1'b1;
+                compress_done_state <= state;
+            end
+        end
+    end
+end
+
+// mc_stall: combinational so it fires from the first cycle state==compress.
+wire mc_stall = in_compress_state & ~compress_done_for_curr;
+// mc_done_pulse: 1-cycle pulse when mcdN finishes — drives dout valid + latch.
+wire mc_done_pulse = mcdN_done_edge;
+
+// Phase B v1 debug removed; mc FSM kept for future integration once the
+// stall corruption (suspected BRAM collisions / pipeline interaction) is
+// understood. mcdN_du_lo/hi are unused — dout still sources butterfly quo.
+
+// -----------------------------------------------------------------------------
+// Two masked_compress_dN_full instances — lo and hi halves of the coefficient
+// pair, mirroring Phase A v2's two-instance pattern. Inputs are the
+// arithmetic-share differences already computed for Phase A (mcd1_d_p_lo/hi
+// etc.) — those signals are combinational from rdata_RAM_mux*_r1, so they
+// reflect whatever the current state mux returns. During the FSM stall at
+// state==0x2c/0x2d, the mux holds the right RAM2/RAM3 vs RAM4 pair.
+// -----------------------------------------------------------------------------
+wire [10:0] mcdN_q_p_lo, mcdN_q_m_lo;
+wire [10:0] mcdN_q_p_hi, mcdN_q_m_hi;
+
+(* keep_hierarchy = "TRUE" *) masked_compress_dN_full #(
+    .D                   (MCDN_D),
+    .Q                   (13'd3329),
+    .PARAM_WIDTH         (MCDN_PARAM_WIDTH),
+    .N_SHARES            (MCDN_N_SHARES),
+    .N_STAGES            (MCDN_N_STAGES),
+    .X2X_RND_SHARES      (MCDN_X2X_RND_SHARES),
+    .X2X_RND_SHARES_8bit (MCDN_X2X_RND_SHARES_8bit),
+    .LD_RND_TRI          (MCDN_LD_RND_TRI),
+    .LD_RND_BOX          (MCDN_LD_RND_BOX)
+) u_mcdN_du_lo (
+    .clk                  (clk),
+    .rst_n                (mcd1_rst_n),
+    .start                (mcdN_start_pulse_r),
+    .done                 (mcdN_done_lo),
+    .c_p                  (mcd1_d_p_lo),
+    .c_m                  (mcd1_d_m_lo),
+    .fresh_rnd_shares     (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit),
+    .ld_rnd_tri           (mcdN_ld_rnd_tri),
+    .ld_rnd_box           (mcdN_ld_rnd_box),
+    .ld_rnd_and12         (mcdN_ld_rnd_and12),
+    .q_p                  (mcdN_q_p_lo),
+    .q_m                  (mcdN_q_m_lo)
+);
+
+(* keep_hierarchy = "TRUE" *) masked_compress_dN_full #(
+    .D                   (MCDN_D),
+    .Q                   (13'd3329),
+    .PARAM_WIDTH         (MCDN_PARAM_WIDTH),
+    .N_SHARES            (MCDN_N_SHARES),
+    .N_STAGES            (MCDN_N_STAGES),
+    .X2X_RND_SHARES      (MCDN_X2X_RND_SHARES),
+    .X2X_RND_SHARES_8bit (MCDN_X2X_RND_SHARES_8bit),
+    .LD_RND_TRI          (MCDN_LD_RND_TRI),
+    .LD_RND_BOX          (MCDN_LD_RND_BOX)
+) u_mcdN_du_hi (
+    .clk                  (clk),
+    .rst_n                (mcd1_rst_n),
+    .start                (mcdN_start_pulse_r),
+    .done                 (mcdN_done_hi),
+    .c_p                  (mcd1_d_p_hi),
+    .c_m                  (mcd1_d_m_hi),
+    .fresh_rnd_shares     (mcd1_rnd_shares),
+    .fresh_rnd_shares_8bit(mcd1_rnd_shares_8bit),
+    .ld_rnd_tri           (mcdN_ld_rnd_tri),
+    .ld_rnd_box           (mcdN_ld_rnd_box),
+    .ld_rnd_and12         (mcdN_ld_rnd_and12),
+    .q_p                  (mcdN_q_p_hi),
+    .q_m                  (mcdN_q_m_hi)
+);
+
+// Cleartext compress bits at the module boundary (XOR of Boolean shares)
+wire [10:0] mcdN_du_lo = mcdN_q_p_lo ^ mcdN_q_m_lo;
+wire [10:0] mcdN_du_hi = mcdN_q_p_hi ^ mcdN_q_m_hi;
+
+// Latch the cleartext compress output at the mc_done_pulse moment so that
+// the dout case-statement (which fires on state_r13==0x2c/0x2d every cycle
+// during the stall) can read a stable value.
+reg [10:0] mcdN_du_lo_latched, mcdN_du_hi_latched;
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        mcdN_du_lo_latched <= 11'h0;
+        mcdN_du_hi_latched <= 11'h0;
+    end else if (mc_done_pulse) begin
+        mcdN_du_lo_latched <= mcdN_du_lo;
+        mcdN_du_hi_latched <= mcdN_du_hi;
+    end
+end
 
 reg [7:0] raddr_RAM0;
 reg [5:0] raddr_RAM1;
@@ -326,11 +765,16 @@ always @(posedge clk) case(state_r3)
 		in0_butt <= rdata_RAM_mux0_r1;
 		in1_butt <= rdata_RAM_mux1_r1;
 	end
-	// Stage 3 unmask: m_dec critical states. Load unmasked polynomial data
-	// so butterfly's quotient compute produces correct (unmasked) m_dec bits.
+	// Step 3+5 Phase A v1: m_dec is now computed by masked_compress_d1
+	// (see PRNG+u_mcd1_lo/u_mcd1_hi instances above). Butterfly's quotient
+	// path is no longer the m_dec source. Load arithmetic-share PRIMARY
+	// values here (not unmasked!) so no cleartext touches in*_butt at these
+	// states. Butterfly's quo*_butt_r1 outputs at state_r13==0x1d/0x1e are
+	// now garbage and ignored — wdata_RAM0/1 below pack the masked_compress
+	// output instead.
 	6'h 1d, 6'h 1e : begin
-		in0_butt <= unmasked_mux0_r1;
-		in1_butt <= unmasked_mux1_r1;
+		in0_butt <= rdata_RAM_mux0_r1;
+		in1_butt <= rdata_RAM_mux1_r1;
 	end
 	5'h f, 5'h 10 : begin
 		in0_butt <= 24'h 0;
@@ -347,8 +791,12 @@ always @(posedge clk) case(state_r3)
 			default : in1_butt <= {din[9:5],7'b0,din[4:0]};
 		endcase
 	end
-	// Stage 3 unmask: dout critical states. Load unmasked polynomial data so
-	// butterfly's quotient compute produces correct (unmasked) dout bits.
+	// Stage 3 unmask: dout critical states. Load unmasked polynomial data
+	// so butterfly's quotient produces correct dout bits.
+	// Phase B viability test (May 2026) showed loading shares here breaks
+	// K because RAM2/RAM3 contents at these addresses feed the hash chain.
+	// Closing this leak (Phase B) requires routing masked Barrett output to
+	// both dout AND wdata_RAM0/1 — deferred (~3 weeks effort).
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
 		in0_butt <= unmasked_mux0_r1;
 		in1_butt <= unmasked_mux1_r1;
@@ -414,11 +862,39 @@ assign samp0 = b0[0]-b0[1]+b0[2]-b0[3]+b0[4]-b0[5];
 assign samp1 = b1[0]-b1[1]+b1[2]-b1[3]+b1[4]-b1[5];
 assign samp2 = b2[0]-b2[1]+b2[2]-b2[3]+b2[4]-b2[5];
 assign samp3 = b3[0]-b3[1]+b3[2]-b3[3]+b3[4]-b3[5];
+
+// Step 4: combine binomial-sum mod-Q correction + mask add + mod-Q reduce in
+// the SAME combinational chain so the register downstream stores ALREADY-MASKED
+// data. samp0_corrected is the post-correction value in [0, Q).
+wire [11:0] samp0_corrected = samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : {9'h0, samp0};
+wire [11:0] samp1_corrected = samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : {9'h0, samp1};
+wire [11:0] samp2_corrected = samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : {9'h0, samp2};
+wire [11:0] samp3_corrected = samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : {9'h0, samp3};
+
+// Step 4 mask selection. The FIFO pop happens at THIS edge if req=1, so reading
+// mask_for_samp at the edge yields PRE-pop value. For back-to-back sampling
+// cycles, that would reuse the same mask. Use next_mask (= fifo_mem[rptr+1])
+// when a pop is in progress so the registered mask matches what the OLD design
+// would have used at the consumption cycle.
+wire [11:0] mask_used_S0 = req_x4_sampling ? mask_for_samp0_next : mask_for_samp0;
+wire [11:0] mask_used_S1 = req_x4_sampling ? mask_for_samp1_next : mask_for_samp1;
+wire [11:0] mask_used_S2 = req_x4_sampling ? mask_for_samp2_next : mask_for_samp2;
+wire [11:0] mask_used_S3 = req_x4_sampling ? mask_for_samp3_next : mask_for_samp3;
+
+wire [12:0] samp0_p_pre = {1'b0, samp0_corrected} + {1'b0, mask_used_S0};
+wire [12:0] samp1_p_pre = {1'b0, samp1_corrected} + {1'b0, mask_used_S1};
+wire [12:0] samp2_p_pre = {1'b0, samp2_corrected} + {1'b0, mask_used_S2};
+wire [12:0] samp3_p_pre = {1'b0, samp3_corrected} + {1'b0, mask_used_S3};
+
 always @(posedge clk) begin
-	samp0_q <= samp0[2] ? 12'h cfd + {1'b0,samp0[1:0]} : samp0;
-	samp1_q <= samp1[2] ? 12'h cfd + {1'b0,samp1[1:0]} : samp1;	
-	samp2_q <= samp2[2] ? 12'h cfd + {1'b0,samp2[1:0]} : samp2;
-	samp3_q <= samp3[2] ? 12'h cfd + {1'b0,samp3[1:0]} : samp3;
+    samp0_p_q <= (samp0_p_pre >= 13'h d01) ? samp0_p_pre[11:0] - 12'h d01 : samp0_p_pre[11:0];
+    samp1_p_q <= (samp1_p_pre >= 13'h d01) ? samp1_p_pre[11:0] - 12'h d01 : samp1_p_pre[11:0];
+    samp2_p_q <= (samp2_p_pre >= 13'h d01) ? samp2_p_pre[11:0] - 12'h d01 : samp2_p_pre[11:0];
+    samp3_p_q <= (samp3_p_pre >= 13'h d01) ? samp3_p_pre[11:0] - 12'h d01 : samp3_p_pre[11:0];
+    samp0_m_q <= mask_used_S0;
+    samp1_m_q <= mask_used_S1;
+    samp2_m_q <= mask_used_S2;
+    samp3_m_q <= mask_used_S3;
 end
 always @(posedge clk) begin
 	state_r1 <=state;
@@ -454,6 +930,9 @@ always @(posedge clk) begin
 	state_r13_d3 <= state_r13_d2;
 	state_r13_d4 <= state_r13_d3;
 	state_r13_d5 <= state_r13_d4;
+	state_r13_d6 <= state_r13_d5;
+	state_r13_d7 <= state_r13_d6;
+	state_r13_d8 <= state_r13_d7;
 end
 always @(posedge clk) case(state)
 	6'h 2, 6'h 19 : raddr_RAM0 <= {ctr_NTT[1:0],ctr_j} + ctr_k;
@@ -654,14 +1133,15 @@ endcase
 // (samp + mask_const) mod Q. This is the only place fresh polynomial data
 // enters RAM; all other states write butterfly outputs which are already
 // masked downstream.
-wire [12:0] samp0_plus = {1'b0, samp0_q} + {1'b0, mask_const};
-wire [12:0] samp1_plus = {1'b0, samp1_q} + {1'b0, mask_const};
-wire [12:0] samp2_plus = {1'b0, samp2_q} + {1'b0, mask_const};
-wire [12:0] samp3_plus = {1'b0, samp3_q} + {1'b0, mask_const};
-wire [11:0] samp0_masked = (samp0_plus >= 13'h d01) ? samp0_plus[11:0] - 12'h d01 : samp0_plus[11:0];
-wire [11:0] samp1_masked = (samp1_plus >= 13'h d01) ? samp1_plus[11:0] - 12'h d01 : samp1_plus[11:0];
-wire [11:0] samp2_masked = (samp2_plus >= 13'h d01) ? samp2_plus[11:0] - 12'h d01 : samp2_plus[11:0];
-wire [11:0] samp3_masked = (samp3_plus >= 13'h d01) ? samp3_plus[11:0] - 12'h d01 : samp3_plus[11:0];
+// Step 1: each of the 4 samples in a cycle uses an independent mask.
+// Step 4: samp{0..3}_masked are now direct aliases for the masked-register
+// outputs. The old samp_plus / samp_masked combinational chain (samp_q + mask
+// + mod-Q reduce) moved INTO the register stage above, so samp{i}_p_q ==
+// (samp{i}_corrected + mask_used_S{i}) mod Q directly.
+wire [11:0] samp0_masked = samp0_p_q;
+wire [11:0] samp1_masked = samp1_p_q;
+wire [11:0] samp2_masked = samp2_p_q;
+wire [11:0] samp3_masked = samp3_p_q;
 
 // =============================================================================
 // Stage 3: unmask helper. Computes (masked - mask + Q) mod Q per 12-bit half.
@@ -743,7 +1223,20 @@ always @(*) case(state_r13)
 		wdata_RAM0 = {decomp1_butt_r1,decomp0_butt_r1};
 		wdata_RAM1 = {decomp1_butt_r1,decomp0_butt_r1};
 	end
-	6'h 1d, 6'h 1e, 6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : begin
+	// Step 3+5 Phase A v2: write the butterfly's quo (which is garbage since
+	// in_butt loads masked shares now) to preserve the v1 RAM contents
+	// format. Trace says these RAM addresses aren't consumed; testing this
+	// in case the trace missed a downstream reader.
+	6'h 1d, 6'h 1e : begin
+		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
+		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
+	end
+	// DEBUG: revert to butterfly quo while isolating mcdN bug
+	6'h 2c, 6'h 2d : begin
+		wdata_RAM0 = {1'b0, quo1_butt_r1, 1'b0, quo0_butt_r1};
+		wdata_RAM1 = {1'b0, quo1_butt_r1, 1'b0, quo0_butt_r1};
+	end
+	6'h 38, 6'h 39 : begin
 		wdata_RAM0 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 		wdata_RAM1 = {1'b0,quo1_butt_r1,1'b0,quo0_butt_r1};
 	end
@@ -828,6 +1321,11 @@ always @(posedge clk) case(state_r1)
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 : req_noise_done <= raddr_RAM2 == 6'h 3f ? 1'h 1 : req_noise_done;
 	6'h 2c, 6'h 38 : req_noise_done <= 1'h 0; 
 endcase
+// Phase A v2: ena_sft restored to v1 timing (state_r3 + 1 reg). Analysis
+// shows ena_sft (state_r3==0x36/0x37) and m_ena (state_r13_d6==0x1d/0x1e)
+// fire in DIFFERENT NTT calls — they cannot overlap. Earlier 4-cycle delay
+// was based on a wrong assumption and only shifted timing without changing
+// total pulse count.
 always @(posedge clk) case(state_r3)
 	6'h 36, 6'h 37 : ena_sft <= 1'h 1;
 	default : ena_sft <= 1'h 0;
@@ -845,7 +1343,7 @@ endcase
 always @(*) begin
 	if(state_r2 == 5'h f || state_r2 == 5'h 10 || state_r2 == 6'h 30 || state_r13 == 6'h 2c || state_r13 == 6'h 2d)
 		req_D0 = 1'h 1;
-	else 
+	else
 		req_D0 = 1'h 0;
 end
 always @(*) begin
@@ -861,10 +1359,12 @@ always @(posedge clk) case(state_r13)
 	default : ready_t <= ready_t;
 endcase
 
-always @(*) case(state_r13)
+always @(*) case(state_r13_d6)
+	// Step 3+5 Phase A v2: v2 wrapper latency = 16 (X2X 10 + SecAdd 5 +
+	// SecAnd 1 with PIPELINE=1 and direct secadd_done → SecAnd.start wire).
 	6'h 1d, 6'h 1e : begin
 		m_ena = 1'h 1;
-		m_dec = {quo1_butt_r1[0],quo0_butt_r1[0]};
+		m_dec = {mcd1_bit_hi, mcd1_bit_lo};
 	end
 	default : begin
 		m_ena = 1'h 0;
@@ -886,9 +1386,10 @@ always @(posedge clk) case(state_r13)
 	// primary) instead of wdata_RAM0 directly. With non-zero mask, wdata_RAM0
 	// holds masked value (a+r); dout must emit unmasked truth (a).
 	5'h c : dout <= ctr_col_r12 == k_1 ? wdata_RAM0_unmasked : 24'h 0;
+	// DEBUG: dout sourced from butterfly's known-correct quo to isolate mcdN bug.
 	6'h 2c, 6'h 2d : case(k)
-		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0],quo0_butt_r1[9:0]};
-		default : dout <= {quo1_butt_r1,quo0_butt_r1};
+		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[9:0], quo0_butt_r1[9:0]};
+		default      : dout <= {quo1_butt_r1,       quo0_butt_r1};
 	endcase
 	6'h 38, 6'h 39 : case(k)
 		3'h 2, 3'h 3 : dout <= {quo1_butt_r1[3:0],quo0_butt_r1[3:0]};
@@ -900,12 +1401,13 @@ endcase
 always @(posedge clk) case(state_r13)
 	5'h c : valid <= ctr_col_r12 == k_1 ? 1'h 1 : 1'h 0;
 	6'h 2c, 6'h 2d, 6'h 38, 6'h 39 : valid <= 1'h 1;
-	default : valid <= 1'h 0;
+	default        : valid <= 1'h 0;
 endcase
 always @(posedge clk) begin
 	if(start)
 		finish <= 1'h 0;
-	else if(state_r13 == 6'h 3a)
+	// Step 3+5 Phase A v2: m_dec gated by state_r13_d6. finish slips by 6.
+	else if(state_r13_d6 == 6'h 3a)
 		finish <= 1'h 1;
 	else
 		finish <= 1'h 0;
@@ -1069,9 +1571,14 @@ endcase
 // At decomp/quotient states, mask writes BU_m's decomp/quo retiming.
 always @(*) case(state_r13)
 	6'h 20, 6'h 21, 6'h 22, 6'h 23, 6'h 3e, 6'h 3f : begin
-		// Sampling: primary writes {samp1_q, samp0_q}; mask writes {mask, mask}
-		wdata_RAM0_m = {mask_const, mask_const};
-		wdata_RAM1_m = {mask_const, mask_const};
+		// Step 4: each lane stores the mask that was used at the corresponding
+		// samp{i}_p_q register (= samp{i}_m_q), not the current mask_for_samp{i}
+		// value. The register selection in the always block above already chose
+		// next_mask vs current to keep masks distinct across back-to-back
+		// sampling cycles; the samp{i}_m_q register captures whatever mask was
+		// chosen, so consumers here just forward it.
+		wdata_RAM0_m = {samp1_m_q, samp0_m_q};
+		wdata_RAM1_m = {samp3_m_q, samp2_m_q};
 	end
 	4'h 2, 5'h 7, 5'h 11, 6'h 19, 6'h 2a, 6'h 34 : begin
 		wdata_RAM0_m = out0_butt_r1_m;
@@ -1134,7 +1641,10 @@ always @(*) case(state_r13)
 	// to preserve the share invariant. Stage 2 erroneously grouped 6'h 14/15
 	// with the noise-sampling states.
 	6'h 2a, 6'h 2b, 6'h 34, 6'h 35 :
-		wdata_RAM2_m = {mask_const, mask_const, mask_const, mask_const};
+		// Step 4: 48-bit mask packs the four samp{i}_m_q registers, which hold
+		// the masks selected at the samp_p_q registration edge (next_mask vs
+		// current_mask).
+		wdata_RAM2_m = {samp3_m_q, samp2_m_q, samp1_m_q, samp0_m_q};
 	default :
 		wdata_RAM2_m = {wdata_RAM1_m, wdata_RAM0_m};
 endcase

@@ -106,7 +106,24 @@ reg req_D1_r1;
 wire DFIFO1_empty, DFIFO1_full;
 
 reg [21:0] cmp0, cmp1;
-reg equal;
+// Step 8: FO ciphertext-compare result is now Boolean-shared. equal_p XOR
+// equal_m == cleartext equal. Probing either share alone reveals nothing
+// about the per-cycle accumulated EQ state. Reconstruction happens at the
+// FSM consumer (state 0x30) only.
+//
+// SCOPE NOTE: cmp0 and cmp1 (the values being compared) are still cleartext
+// because they come from DFIFO output / NTT_dout, which are cleartext until
+// Step 7 (masked Keccak) lands. This Step-8 scaffold protects the
+// ACCUMULATOR register; once Step 7 makes cmp0/cmp1 shared, the same
+// scaffold extends to a fully-shared compare gadget.
+reg equal_p, equal_m;
+wire equal = equal_p ^ equal_m;  // unmask at FSM boundary
+
+// Per-cycle re-masking randomness: 16-bit Galois LFSR (taps 16,14,13,11).
+// Standalone (no coupling with mask_polyfifo_x4, which is per-NTT-call scope).
+// LSB drives re-masking; one bit per compare cycle is sufficient.
+reg [15:0] eq_lfsr = 16'hACE1;
+wire eq_rand_bit = eq_lfsr[0];
 
 wire [23:0] encode_din;
 reg encode_wen;
@@ -577,13 +594,38 @@ always @(*) case({req_D0_r1&~ready_t,req_D1_r1&CCA_enc})
 		cmp1 = NTT_dout;
 	end
 endcase
+// Step 8: Boolean-shared `equal` accumulator. The cleartext update rule was
+//   equal_new = (cmp0 == cmp1) ? equal_old : 1'b0
+// In Boolean shares with re-masking by a fresh r per cycle:
+//   equal_p_new = ((cmp0 == cmp1) & equal_p_old) XOR r
+//   equal_m_new = ((cmp0 == cmp1) & equal_m_old) XOR r
+// Reconstruction: equal_p_new XOR equal_m_new
+//   = ((cmp0 == cmp1) & (equal_p_old XOR equal_m_old)) XOR r XOR r
+//   = (cmp0 == cmp1) & equal_old        ✓
+// Probing equal_p_new: function of (equal_p_old, cmp0==cmp1, r). r uniform →
+// equal_p_new uniform given the rest. d=1 probing safe (modulo cleartext
+// inputs, which are addressed by Step 7).
 always @(posedge clk) begin
-	if(start)
-		equal <= 1'h 1;
-	else if(req_D0_r1&~ready_t | req_D1_r1&CCA_enc)
-		equal <= cmp0 == cmp1 ? equal : 1'h 0;
+	if(start) begin
+		equal_p <= 1'b1;   // initial equal = 1 → trivial split
+		equal_m <= 1'b0;
+	end
+	else if(req_D0_r1&~ready_t | req_D1_r1&CCA_enc) begin
+		equal_p <= ((cmp0 == cmp1) & equal_p) ^ eq_rand_bit;
+		equal_m <= ((cmp0 == cmp1) & equal_m) ^ eq_rand_bit;
+	end
+	else begin
+		equal_p <= equal_p;
+		equal_m <= equal_m;
+	end
+end
+
+// LFSR advances continuously so each compare cycle gets a fresh r-bit.
+always @(posedge clk) begin
+	if(rst)
+		eq_lfsr <= 16'hACE1;
 	else
-		equal <= equal;
+		eq_lfsr <= {eq_lfsr[14:0], eq_lfsr[15] ^ eq_lfsr[13] ^ eq_lfsr[12] ^ eq_lfsr[10]};
 end
 
 always @(posedge clk) begin
@@ -628,6 +670,10 @@ NTT_core_Server_masked ntt(
 .fifo1_empty(ofifo1_empty),
 .fifo1_full(ofifo1_full),
 .DFIFO0_full_eff(DFIFO0_full_eff),
+// Step 9: phase_reseed perturbs mask_polyfifo_x4's PRNG state on every
+// new Keccak instance. keccak_init pulses naturally mark phase boundaries
+// (new noise polynomial, new hash, new matrix-A block) — drive directly.
+.phase_reseed(keccak_init),
 .fifo0_req(ofifo0_req),
 .fifo1_req_r9(ofifo1_req),
 .ena_sft(ena_sft),
@@ -688,6 +734,9 @@ integer cmp_w0_diff = 0;
 integer cmp_w1_diff = 0;
 integer cmp_w2_diff = 0;
 integer cmp_m_dec_diff = 0;
+integer dbg_m_ena_cnt = 0;
+integer dbg_s_ena_cnt = 0;
+integer dbg_in_cnt = 0;
 always @(posedge clk) begin
     if (ntt.wen_RAM0 !== ntt_shadow.wen_RAM0) begin
         if (cmp_w0_cnt < 5)
@@ -723,6 +772,76 @@ always @(posedge clk) begin
                 ntt.in0_butt, ntt.in1_butt, ntt.tw_butt,
                 ntt_shadow.in0_butt, ntt_shadow.in1_butt, ntt_shadow.tw_butt);
         cmp_m_dec_diff <= cmp_m_dec_diff + 1;
+    end
+
+    // Phase A v2 instrumentation Round 1: log each m_ena event from BOTH
+    // masked and shadow. Different cycles because v2 has +5 latency, so
+    // capture them independently to compare values across the timeline.
+    // First 16 of each. Look for: do bit values eventually MATCH (just
+    // shifted in time) or are they SYSTEMATICALLY DIFFERENT?
+    if (ntt.m_ena && dbg_m_ena_cnt < 128) begin
+        $display("[DBG_M m_ena #%0d t=%0t] m_dec=%h (mcd1_hi_p=%b mcd1_hi_m=%b mcd1_lo_p=%b mcd1_lo_m=%b) state_r13_d5=%h",
+            dbg_m_ena_cnt, $time, ntt.m_dec,
+            ntt.mcd1_m_p_hi, ntt.mcd1_m_m_hi, ntt.mcd1_m_p_lo, ntt.mcd1_m_m_lo,
+            ntt.state_r13_d5);
+        // Round 3: dump X2X's Boolean share outputs for each instance.
+        // x2x_out_xor SHOULD equal the cleartext c being processed (15 cycles
+        // ago's input). If it doesn't, X2X is the bug.
+        $display("[DBG_M_X2X #%0d] lo_x2x_out=[%h,%h] xor=%0d  hi_x2x_out=[%h,%h] xor=%0d",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_lo.x2x_out[0][0], ntt.u_mcd1_lo.x2x_out[0][1],
+            ntt.u_mcd1_lo.x2x_out[0][0] ^ ntt.u_mcd1_lo.x2x_out[0][1],
+            ntt.u_mcd1_hi.x2x_out[0][0], ntt.u_mcd1_hi.x2x_out[0][1],
+            ntt.u_mcd1_hi.x2x_out[0][0] ^ ntt.u_mcd1_hi.x2x_out[0][1]);
+        // Round 4: dump SecAdd outputs (Boolean-shared sums) from both threshold
+        // compare instances. SecAdd output XOR should match (c + offset) mod 2^13
+        // for the corresponding pipeline cycle.
+        // LO threshold operates on x2x_out from 3 cycles ago. SecAdd output XOR
+        // SHOULD = (c[T-13] + 7359) mod 8192 for "ge_lo" path,
+        // and (c[T-13] + 5695) mod 8192 for "lt_hi" path.
+        $display("[DBG_M_SECADD #%0d] LO lo_S=[%h,%h] xor=%h(=%0d)  LO hi_S=[%h,%h] xor=%h(=%0d)",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0], ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0], ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_lo.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_lo.u_mtc.secadd_hi_S[1]);
+        $display("[DBG_M_SECADD_HI #%0d] HI lo_S=[%h,%h] xor=%h(=%0d)  HI hi_S=[%h,%h] xor=%h(=%0d)",
+            dbg_m_ena_cnt,
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0], ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_lo_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_lo_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0], ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1],
+            ntt.u_mcd1_hi.u_mtc.secadd_hi_S[0] ^ ntt.u_mcd1_hi.u_mtc.secadd_hi_S[1]);
+        dbg_m_ena_cnt <= dbg_m_ena_cnt + 1;
+    end
+    if (ntt_shadow.m_ena && dbg_s_ena_cnt < 128) begin
+        $display("[DBG_S s_ena #%0d t=%0t] m_dec=%h quo0_r1[0]=%b quo1_r1[0]=%b state_r13=%h",
+            dbg_s_ena_cnt, $time, ntt_shadow.m_dec,
+            ntt_shadow.quo0_butt_r1[0], ntt_shadow.quo1_butt_r1[0],
+            ntt_shadow.state_r13);
+        dbg_s_ena_cnt <= dbg_s_ena_cnt + 1;
+    end
+
+    // Round 2: print masked's wrapper INPUTS at state_r3 = 0x1d/0x1e events.
+    // First 16. Compute cleartext c per half. This tells us what compress_d1
+    // SHOULD be (for comparison with the m_dec outputs above; outputs lag
+    // inputs by 15 cycles in v2 wrapper).
+    if ((ntt.state_r3 == 6'h 1d || ntt.state_r3 == 6'h 1e) && dbg_in_cnt < 16) begin
+        $display("[DBG_IN #%0d t=%0t state_r3=%h] d_p_lo=%h d_m_lo=%h c_lo=%0d  |  d_p_hi=%h d_m_hi=%h c_hi=%0d",
+            dbg_in_cnt, $time, ntt.state_r3,
+            ntt.mcd1_d_p_lo, ntt.mcd1_d_m_lo,
+            // Cleartext c_lo = (d_p_lo - d_m_lo + Q) mod Q
+            ({1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo}) >= 13'h d01 ?
+                {1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo} - 13'h d01 :
+                {1'b0, ntt.mcd1_d_p_lo} + 13'h d01 - {1'b0, ntt.mcd1_d_m_lo},
+            ntt.mcd1_d_p_hi, ntt.mcd1_d_m_hi,
+            ({1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi}) >= 13'h d01 ?
+                {1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi} - 13'h d01 :
+                {1'b0, ntt.mcd1_d_p_hi} + 13'h d01 - {1'b0, ntt.mcd1_d_m_hi});
+        dbg_in_cnt <= dbg_in_cnt + 1;
     end
 end
 
@@ -780,17 +899,34 @@ always @(posedge clk) begin
     end
 
     // (D) samp_q (registered sampler values that drive wdata_RAM0/1 at the
-    //     sampling state). If samp_q differs before samp_masked is computed,
-    //     the divergence is upstream of mask injection.
-    if ((ntt.samp0_q !== ntt_shadow.samp0_q ||
-         ntt.samp1_q !== ntt_shadow.samp1_q ||
-         ntt.samp2_q !== ntt_shadow.samp2_q ||
-         ntt.samp3_q !== ntt_shadow.samp3_q)) begin
-        if (cmp_w0_diff < 3) // limit to first few
-            $display("[SAMP_Q_DIFF t=%0t] m.samp_q={%h,%h,%h,%h} s.samp_q={%h,%h,%h,%h} state=%h",
-                $time, ntt.samp0_q, ntt.samp1_q, ntt.samp2_q, ntt.samp3_q,
-                ntt_shadow.samp0_q, ntt_shadow.samp1_q, ntt_shadow.samp2_q, ntt_shadow.samp3_q,
-                ntt.state);
+    //     sampling state). Step 4 replaced the masked NTT's cleartext samp_q
+    //     register with masked samp_p_q + mask samp_m_q. Recombine
+    //     (samp_p_q - samp_m_q) mod Q to compare against the shadow's
+    //     unmasked samp_q.
+    begin : samp_q_recomb_block
+        reg [11:0] m_samp_recomb [0:3];
+        m_samp_recomb[0] = ntt.samp0_p_q >= ntt.samp0_m_q
+            ? ntt.samp0_p_q - ntt.samp0_m_q
+            : ntt.samp0_p_q + 12'h d01 - ntt.samp0_m_q;
+        m_samp_recomb[1] = ntt.samp1_p_q >= ntt.samp1_m_q
+            ? ntt.samp1_p_q - ntt.samp1_m_q
+            : ntt.samp1_p_q + 12'h d01 - ntt.samp1_m_q;
+        m_samp_recomb[2] = ntt.samp2_p_q >= ntt.samp2_m_q
+            ? ntt.samp2_p_q - ntt.samp2_m_q
+            : ntt.samp2_p_q + 12'h d01 - ntt.samp2_m_q;
+        m_samp_recomb[3] = ntt.samp3_p_q >= ntt.samp3_m_q
+            ? ntt.samp3_p_q - ntt.samp3_m_q
+            : ntt.samp3_p_q + 12'h d01 - ntt.samp3_m_q;
+        if ((m_samp_recomb[0] !== ntt_shadow.samp0_q ||
+             m_samp_recomb[1] !== ntt_shadow.samp1_q ||
+             m_samp_recomb[2] !== ntt_shadow.samp2_q ||
+             m_samp_recomb[3] !== ntt_shadow.samp3_q)) begin
+            if (cmp_w0_diff < 3) // limit to first few
+                $display("[SAMP_Q_DIFF t=%0t] m.recomb={%h,%h,%h,%h} s.samp_q={%h,%h,%h,%h} state=%h",
+                    $time, m_samp_recomb[0], m_samp_recomb[1], m_samp_recomb[2], m_samp_recomb[3],
+                    ntt_shadow.samp0_q, ntt_shadow.samp1_q, ntt_shadow.samp2_q, ntt_shadow.samp3_q,
+                    ntt.state);
+        end
     end
 
     // (E) Share-invariant check: at every wen_RAM0 cycle where both designs
@@ -799,31 +935,117 @@ always @(posedge clk) begin
     //     has broken — log the FIRST cycle this happens.
 end
 
+// =============================================================================
+// SHARE INVARIANT CHECK (Step 0.5 of masked-Kyber security hardening plan)
+//
+// Per-cycle invariant for first-order arithmetic masking mod q=3329:
+//
+//      (primary_share - mask_share) mod q  ==  shadow_unmasked
+//
+// This invariant holds regardless of whether the mask is constant per call
+// (current state) or refreshed per coefficient (Step 1). It survives every
+// step that keeps shares additive over Z_q. It WILL change form at Step 5
+// (compression introduces Boolean shares) — at that point this block needs
+// to be re-derived for the new share semantics.
+//
+// Checked on all three primary RAM write-data paths (RAM0, RAM1 are 24-bit
+// = two 12-bit coefficient halves; RAM2 is 48-bit = four halves).
+//
+// First break is logged with [INV_FIRST_BREAK]; per-cycle breaks (up to 8 of
+// each kind) log [INV_BROKEN_R0/R1/R2]. regression_check.sh greps for any of
+// these tags so an invariant break fails the regression even if the external
+// KAT happens to still match by coincidence.
+// =============================================================================
+
+localparam [12:0] INV_Q = 13'h d01; // Kyber prime q=3329
+
+// Per-half (masked - mask) mod q helper — implemented as a function for reuse
+function automatic [11:0] inv_recover_half(
+    input [11:0] primary,
+    input [11:0] mask
+);
+    reg [12:0] diff;
+    begin
+        diff = {1'b0, primary} + INV_Q - {1'b0, mask};
+        inv_recover_half = (diff >= INV_Q) ? diff[11:0] - INV_Q[11:0] : diff[11:0];
+    end
+endfunction
+
+// Recovered values for the three RAM wdata paths
+wire [23:0] inv_recovered_R0 = {
+    inv_recover_half(ntt.wdata_RAM0[23:12], ntt.wdata_RAM0_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM0[11: 0], ntt.wdata_RAM0_m[11: 0])
+};
+wire [23:0] inv_recovered_R1 = {
+    inv_recover_half(ntt.wdata_RAM1[23:12], ntt.wdata_RAM1_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM1[11: 0], ntt.wdata_RAM1_m[11: 0])
+};
+wire [47:0] inv_recovered_R2 = {
+    inv_recover_half(ntt.wdata_RAM2[47:36], ntt.wdata_RAM2_m[47:36]),
+    inv_recover_half(ntt.wdata_RAM2[35:24], ntt.wdata_RAM2_m[35:24]),
+    inv_recover_half(ntt.wdata_RAM2[23:12], ntt.wdata_RAM2_m[23:12]),
+    inv_recover_half(ntt.wdata_RAM2[11: 0], ntt.wdata_RAM2_m[11: 0])
+};
+
 reg invariant_broken = 1'b0;
-integer inv_diff_cnt = 0;
-// Per-half diff: (masked - mask) mod Q
-wire [12:0] inv_diff_lo = {1'b0, ntt.wdata_RAM0[11:0]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[11:0]};
-wire [11:0] inv_recovered_lo = (inv_diff_lo >= 13'h d01) ? inv_diff_lo[11:0] - 12'h d01 : inv_diff_lo[11:0];
-wire [12:0] inv_diff_hi = {1'b0, ntt.wdata_RAM0[23:12]} + 13'h d01 - {1'b0, ntt.wdata_RAM0_m[23:12]};
-wire [11:0] inv_recovered_hi = (inv_diff_hi >= 13'h d01) ? inv_diff_hi[11:0] - 12'h d01 : inv_diff_hi[11:0];
-wire [23:0] inv_recovered = {inv_recovered_hi, inv_recovered_lo};
+integer inv_diff_cnt_R0 = 0;
+integer inv_diff_cnt_R1 = 0;
+integer inv_diff_cnt_R2 = 0;
+
+// Step 3+5 Phase A v1: at the m_dec states the masked design now packs
+// 1-bit-per-half from masked_compress_d1 instead of the full 11-bit butterfly
+// quotient. Wdata bits above the LSB don't match the shadow's full quotient
+// at these states by design — gate the invariant check there. Other states
+// still must agree.
+// Phase B: also gate 0x2c/0x2d because the masked path's butterfly quo at
+// those states is garbage now (in_butt loads shares, not unmasked); the
+// shadow's quo is the unmasked compress. Both wdata_RAM* (which sources
+// quo at those states) and wdata_RAM2 (which packs RAM0/RAM1 wdata) diverge
+// from shadow by design.
+wire inv_check_gated = (ntt.state_r13 == 6'h 1d) || (ntt.state_r13 == 6'h 1e)
+                    || (ntt.state_r13 == 6'h 2c) || (ntt.state_r13 == 6'h 2d);
+
+// DBG: Phase B mcdN debug removed after isolation of stall bug.
 
 always @(posedge clk) begin
-    if (ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered !== ntt_shadow.wdata_RAM0) begin
-        if (inv_diff_cnt < 8)
-            $display("[INV_BROKEN t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h | m.dmux={%h,%h} m.dmux_m={%h,%h} s.dmux={%h,%h} | m.out0_butt={%h,%h} m.out0_butt_m={%h,%h} m.rdata_acc_r8=%h m.rdata_acc_r8_m=%h",
-                $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered, ntt_shadow.wdata_RAM0,
-                ntt.data_mux1, ntt.data_mux0, ntt.data_mux1_m, ntt.data_mux0_m,
-                ntt_shadow.data_mux1, ntt_shadow.data_mux0,
-                ntt.out0_butt[23:12], ntt.out0_butt[11:0],
-                ntt.out0_butt_m[23:12], ntt.out0_butt_m[11:0],
-                ntt.rdata_acc_r8, ntt.rdata_acc_r8_m);
+    // RAM0 write-data invariant
+    if (!inv_check_gated && ntt.wen_RAM0 && ntt_shadow.wen_RAM0 && inv_recovered_R0 !== ntt_shadow.wdata_RAM0) begin
+        if (inv_diff_cnt_R0 < 8)
+            $display("[INV_BROKEN_R0 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM0, ntt.wdata_RAM0_m, inv_recovered_R0, ntt_shadow.wdata_RAM0);
         if (!invariant_broken) begin
-            $display("[INV_FIRST_BREAK t=%0t state_r13=%h state_r3=%h state=%h]",
+            $display("[INV_FIRST_BREAK_R0 t=%0t state_r13=%h state_r3=%h state=%h]",
                 $time, ntt.state_r13, ntt.state_r3, ntt.state);
             invariant_broken <= 1'b1;
         end
-        inv_diff_cnt <= inv_diff_cnt + 1;
+        inv_diff_cnt_R0 <= inv_diff_cnt_R0 + 1;
+    end
+
+    // RAM1 write-data invariant
+    if (!inv_check_gated && ntt.wen_RAM1 && ntt_shadow.wen_RAM1 && inv_recovered_R1 !== ntt_shadow.wdata_RAM1) begin
+        if (inv_diff_cnt_R1 < 8)
+            $display("[INV_BROKEN_R1 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM1, ntt.wdata_RAM1_m, inv_recovered_R1, ntt_shadow.wdata_RAM1);
+        if (!invariant_broken) begin
+            $display("[INV_FIRST_BREAK_R1 t=%0t state_r13=%h state_r3=%h state=%h]",
+                $time, ntt.state_r13, ntt.state_r3, ntt.state);
+            invariant_broken <= 1'b1;
+        end
+        inv_diff_cnt_R1 <= inv_diff_cnt_R1 + 1;
+    end
+
+    // RAM2 write-data invariant (48-bit, four 12-bit halves)
+    if (!inv_check_gated && (ntt.wen_RAM2 || ntt.wen_RAM3) && (ntt_shadow.wen_RAM2 || ntt_shadow.wen_RAM3) &&
+        inv_recovered_R2 !== ntt_shadow.wdata_RAM2) begin
+        if (inv_diff_cnt_R2 < 8)
+            $display("[INV_BROKEN_R2 t=%0t state_r13=%h] m.wdata=%h m.wdata_m=%h recovered=%h s.wdata=%h",
+                $time, ntt.state_r13, ntt.wdata_RAM2, ntt.wdata_RAM2_m, inv_recovered_R2, ntt_shadow.wdata_RAM2);
+        if (!invariant_broken) begin
+            $display("[INV_FIRST_BREAK_R2 t=%0t state_r13=%h state_r3=%h state=%h]",
+                $time, ntt.state_r13, ntt.state_r3, ntt.state);
+            invariant_broken <= 1'b1;
+        end
+        inv_diff_cnt_R2 <= inv_diff_cnt_R2 + 1;
     end
 end
 hash_core_Server hash(

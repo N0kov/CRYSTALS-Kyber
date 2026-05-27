@@ -468,6 +468,8 @@ NTT_core_Client_masked ntt(
 .fifo0_empty(ofifo0_empty),
 .fifo1_empty(ofifo1_empty),
 .fifo1_full(ofifo1_full),
+// Step 9: see Server for rationale.
+.phase_reseed(keccak_init),
 .fifo0_req(ofifo0_req),
 .fifo1_req_r9(ofifo1_req),
 .req_D(req_D),

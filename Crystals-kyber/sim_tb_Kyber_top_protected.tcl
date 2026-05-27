@@ -22,6 +22,8 @@ set NH_DIR      [file join $SCRIPT_DIR "Crystals-kyber.srcs/new_hardware"]
 set SRC_NEW     [file join $SCRIPT_DIR "Crystals-kyber.srcs/sources_1/new"]
 set SRC_IMP     [file join $SCRIPT_DIR "Crystals-kyber.srcs/sources_1/imports"]
 set PRNG_DIR    [file join $SCRIPT_DIR "../pseudo-random-number-generator_verilog-main/main/verilog"]
+set X2X_SRC     [file join $SCRIPT_DIR "../X2X-main/src"]
+set X2X_TB      [file join $SCRIPT_DIR "../X2X-main/src_tb"]
 
 open_project $PRJ_FILE
 
@@ -38,8 +40,28 @@ set files_to_add [list \
     [file join $NH_DIR   "d_ff.sv"] \
     [file join $NH_DIR   "clock_mux.sv"] \
     [file join $NH_DIR   "rng.sv"] \
-    [file join $NH_DIR   "mask_csprng.sv"] \
-    [file join $NH_DIR   "mask_polyfifo.sv"] \
+    [file join $NH_DIR   "mask_polyfifo_x4.sv"] \
+    [file join $X2X_SRC  "D_reg.sv"] \
+    [file join $X2X_SRC  "D_reg_NEG_EDGE.sv"] \
+    [file join $X2X_SRC  "fullXOR.sv"] \
+    [file join $X2X_SRC  "SecXOR.sv"] \
+    [file join $X2X_SRC  "SecNOT.sv"] \
+    [file join $X2X_SRC  "SecAnd.sv"] \
+    [file join $X2X_SRC  "SecAnd_NEG_EDGE.sv"] \
+    [file join $X2X_SRC  "SecOR_ALT.sv"] \
+    [file join $X2X_SRC  "SecANDOR_ALT.sv"] \
+    [file join $X2X_SRC  "triangle.sv"] \
+    [file join $X2X_SRC  "box_HALFCYCLE.sv"] \
+    [file join $X2X_SRC  "SecAdd_HALFCYCLE_STREAM.sv"] \
+    [file join $X2X_SRC  "MaskConversion_2SHARE_HALFCYCLE_STREAM.sv"] \
+    [file join $X2X_SRC  "MaskConversion_3SHARE_HALFCYCLE_STREAM.sv"] \
+    [file join $X2X_SRC  "MaskConversion_HALFCYCLE_STREAM.sv"] \
+    [file join $X2X_TB   "PRNG.sv"] \
+    [file join $X2X_TB   "PRNG_engine_2SHARE.sv"] \
+    [file join $X2X_TB   "PRNG_engine_3SHARE.sv"] \
+    [file join $X2X_TB   "PRNG_engine_STREAM.sv"] \
+    [file join $NH_DIR   "masked_threshold_compare.sv"] \
+    [file join $NH_DIR   "masked_compress_d1.sv"] \
     [file join $NH_DIR   "rand_clk_gen.sv"] \
     [file join $SRC_IMP  "imports/_to_32bits.v"] \
     [file join $SRC_IMP  "imports/decode_Client.v"] \
@@ -76,6 +98,12 @@ foreach f $files_to_add {
 
 set_property top tb_Kyber_top_protected [get_filesets sim_tb_kyber_prot]
 set_property top_lib xil_defaultlib [get_filesets sim_tb_kyber_prot]
+
+# Phase A: NTT_core_Server_masked.v uses SystemVerilog-only constructs
+# (unpacked array port connects to X2X). Tell Vivado to parse it as SV.
+set_property file_type "SystemVerilog" \
+    [get_files -of_objects [get_filesets sim_tb_kyber_prot] \
+        "*NTT_core_Server_masked.v"]
 
 # Clear any stale xelab options that may have been saved in the project
 set_property -name {xsim.elaborate.xelab.more_options} \

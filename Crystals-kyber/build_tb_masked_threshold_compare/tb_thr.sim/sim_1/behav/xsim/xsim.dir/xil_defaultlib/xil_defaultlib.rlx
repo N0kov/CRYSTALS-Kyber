@@ -1,0 +1,18 @@
+0.7
+2020.2
+Nov 14 2025
+12:36:23
+/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv,1779480433,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/triangle.sv,,masked_threshold_compare,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/tb_masked_threshold_compare.sv,1779480440,systemVerilog,,,,tb_masked_threshold_compare,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/build_tb_masked_threshold_compare/tb_thr.sim/sim_1/behav/xsim/glbl.v,1756381829,verilog,,,,glbl,,uvm,,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv,,D_reg,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecANDOR_ALT.sv,,D_reg_NEG_EDGE,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecANDOR_ALT.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv,,SecANDOR_ALT,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv,,SecAdd_HALFCYCLE_STREAM,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv,1779411306,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd_NEG_EDGE.sv,,SecAnd,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd_NEG_EDGE.sv,1779411326,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv,,SecAnd_NEG_EDGE,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv,,SecNOT,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv,,SecOR_ALT,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv,,SecXOR,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv,,box_HALFCYCLE,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,
+/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/triangle.sv,1739356408,systemVerilog,,/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/tb_masked_threshold_compare.sv,,triangle,,uvm,../../../../../../../../home/lincoln/2025.2/data/rsb/busdef,,,,,

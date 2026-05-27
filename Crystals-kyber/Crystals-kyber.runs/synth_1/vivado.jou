@@ -3,22 +3,22 @@
 # SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Mon May  4 18:23:11 2026
-# Process ID         : 141918
+# Start of session at: Mon May 25 00:11:43 2026
+# Process ID         : 293
 # Current directory  : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1
-# Command line       : vivado -log Kyber_Client.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Kyber_Client.tcl
-# Log file           : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1/Kyber_Client.vds
+# Command line       : vivado -log Kyber_top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Kyber_top.tcl
+# Log file           : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1/Kyber_top.vds
 # Journal file       : /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.runs/synth_1/vivado.jou
 # Running On         : xanadu
-# Platform           : ManjaroLinux
-# Operating System   : Manjaro Linux
+# Platform           : n/a
+# Operating System   : (none)
 # Processor Detail   : Intel(R) Core(TM) Ultra 9 185H
-# CPU Frequency      : 400.000 MHz
+# CPU Frequency      : 2956.482 MHz
 # CPU Physical cores : 16
 # CPU Logical cores  : 16
 # Host memory        : 33240 MB
 # Swap memory        : 51522 MB
 # Total Virtual      : 84762 MB
-# Available Virtual  : 73291 MB
+# Available Virtual  : 68258 MB
 #-----------------------------------------------------------
-source Kyber_Client.tcl -notrace
+source Kyber_top.tcl -notrace
