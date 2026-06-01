@@ -20,6 +20,8 @@ vhdl xil_defaultlib  \
 "../../../../Crystals-kyber.srcs/sources_1/imports/imports/Keccak1600.vhd" \
 "../../../../Crystals-kyber.srcs/sources_1/imports/imports/theta.vhd" \
 "../../../../Crystals-kyber.srcs/sources_1/imports/imports/Round.vhd" \
+"../../../../Crystals-kyber.srcs/sources_1/ip/c_shift_ram_10/sim/c_shift_ram_10.vhd" \
+"../../../../Crystals-kyber.srcs/sources_1/ip/c_shift_ram_7/sim/c_shift_ram_7.vhd" \
 
 # Do not sort compile order
 nosort

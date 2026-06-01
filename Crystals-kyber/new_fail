@@ -1,0 +1,683 @@
+❯ vivado -mode batch -source run_synth.tcl
+
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu May 28 20:57:33 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source run_synth.tcl
+# set SCRIPT_DIR [file dirname [file normalize [info script]]]
+# set PRJ_FILE   [file join $SCRIPT_DIR "Crystals-kyber.xpr"]
+# open_project $PRJ_FILE
+Scanning sources...
+Finished scanning sources
+CRITICAL WARNING: [Runs 36-271] Incremental checkpoint part, xc7a12tcpg238-1, does not match run part, xc7a35tcsg324-1.
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:emb-plus-vpr-4616:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/emb-plus-vpr-4616/1.0/board.xml as part xcve2302-sfva784-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:emb-plus-vpr-4616:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/emb-plus-vpr-4616/1.1/board.xml as part xcve2302-sfva784-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k24c:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k24c/1.0/board.xml as part xck24-ubva530-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k24c:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k24c/1.1/board.xml as part xck24-ubva530-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k24i:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k24i/1.0/board.xml as part xck24-ubva530-2lvi-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26c:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26c/1.2/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26c:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26c/1.3/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26c:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26c/1.4/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26i:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26i/1.2/board.xml as part xck26-sfvc784-2lvi-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26i:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26i/1.3/board.xml as part xck26-sfvc784-2lvi-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:k26i:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/k26i/1.4/board.xml as part xck26-sfvc784-2lvi-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kc705:part0:1.6 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kc705/1.6/board.xml as part xc7k325tffg900-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kc705:part0:1.7 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kc705/1.7/board.xml as part xc7k325tffg900-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kcu105:part0:1.6 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kcu105/1.6/board.xml as part xcku040-ffva1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kcu105:part0:1.7 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kcu105/1.7/board.xml as part xcku040-ffva1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kcu116:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kcu116/1.4/board.xml as part xcku5p-ffvb676-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kcu116:part0:1.5 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kcu116/1.5/board.xml as part xcku5p-ffvb676-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kcu1500:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kcu1500/1.2/board.xml as part xcku115-flvb2104-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kd240_som:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kd240_som/1.0/board.xml as part xck24-ubva530-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kd240_som:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kd240_som/1.1/board.xml as part xck24-ubva530-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kr260_som:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kr260_som/1.0/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kr260_som:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kr260_som/1.1/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kv260_som:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kv260_som/1.2/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kv260_som:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kv260_som/1.3/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:kv260_som:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/kv260_som/1.4/board.xml as part xck26-sfvc784-2lv-c specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:scu35:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/scu35/1.0/board.xml as part xcsu35p-sbvb625-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:v80:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/v80/1.0/board.xml as part xcv80-lsva4737-2mhp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vc707:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vc707/1.4/board.xml as part xc7vx485tffg1761-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vc707:part0:1.5 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vc707/1.5/board.xml as part xc7vx485tffg1761-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vc709:part0:1.8 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vc709/1.8/board.xml as part xc7vx690tffg1761-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:2.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/2.2/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:3.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/3.0/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:3.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/3.1/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:3.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/3.2/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:3.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/3.3/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190:part0:3.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190/production/3.4/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190_newl:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190_newl/production/1.0/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190_newl:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190_newl/production/1.1/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190_newl:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190_newl/production/1.2/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vck190_newl:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vck190_newl/production/1.3/board.xml as part xcvc1902-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu108:part0:1.6 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu108/1.6/board.xml as part xcvu095-ffva2104-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu108:part0:1.7 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu108/1.7/board.xml as part xcvu095-ffva2104-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu110:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu110/1.4/board.xml as part xcvu190-flgc2104-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu118:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu118/2.0/board.xml as part xcvu9p-flga2104-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu118:part0:2.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu118/2.3/board.xml as part xcvu9p-flga2104-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu118:part0:2.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu118/2.4/board.xml as part xcvu9p-flga2104-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu128:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu128/production/1.0/board.xml as part xcvu37p-fsvh2892-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu129:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu129/production/1.0/board.xml as part xcvu29p-fsga2577-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vcu1525:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vcu1525/1.3/board.xml as part xcvu9p-fsgd2104-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek280:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek280/production/1.0/board.xml as part xcve2802-vsvh1760-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek280:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek280/production/1.1/board.xml as part xcve2802-vsvh1760-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek280:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek280/production/1.2/board.xml as part xcve2802-vsvh1760-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek385:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek385/1.0/board.xml as part xc2ve3858-ssva2112-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek385:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek385/1.1/board.xml as part xc2ve3858-ssva2112-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vek385_1:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vek385_2/1.0/board.xml as part xc2ve3858-ssva2112-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vermeo_t1_mpsoc:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vermeo_t1_mpsoc/1.0/board.xml as part xczu19eg-ffvd1760-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vermeo_t1_rfsoc:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vermeo_t1_rfsoc/1.0/board.xml as part xczu21dr-ffvd1156-2l-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vhk158:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vhk158/production/1.0/board.xml as part xcvh1582-vsva3697-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vhk158:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vhk158/production/1.1/board.xml as part xcvh1582-vsva3697-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vhk158:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vhk158/production/1.2/board.xml as part xcvh1582-vsva3697-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180:part0:2.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180/production/2.2/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180:part0:3.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180/production/3.0/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180:part0:3.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180/production/3.1/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180:part0:3.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180/production/3.2/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180:part0:3.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180/production/3.3/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180_newl:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180_newl/production/1.0/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vmk180_newl:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vmk180_newl/production/1.1/board.xml as part xcvm1802-vsva2197-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk120:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk120/production/1.0/board.xml as part xcvp1202-vsva2785-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk120:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk120/production/1.1/board.xml as part xcvp1202-vsva2785-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk120:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk120/production/1.2/board.xml as part xcvp1202-vsva2785-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk180:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk180/production/1.0/board.xml as part xcvp1802-lsvc4072-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk180:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk180/production/1.1/board.xml as part xcvp1802-lsvc4072-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vpk180:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vpk180/production/1.2/board.xml as part xcvp1802-lsvc4072-2mp-e-s specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vrk160:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vrk160/1.0/board.xml as part xcvr1602-vsva2488-2mp-e-s-es1 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:vrk160:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/vrk160/1.1/board.xml as part xcvr1602-vsva2488-2mp-e-s-es1 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zc702:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zc702/1.4/board.xml as part xc7z020clg484-1 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zc706:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zc706/1.4/board.xml as part xc7z045ffg900-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zc706:part0:1.5 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zc706/1.5/board.xml as part xc7z045ffg900-2 specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu102:part0:3.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu102/3.3/board.xml as part xczu9eg-ffvb1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu102:part0:3.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu102/3.4/board.xml as part xczu9eg-ffvb1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu104:part0:1.1 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu104/1.1/board.xml as part xczu7ev-ffvc1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu106:part0:2.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu106/2.4/board.xml as part xczu7ev-ffvc1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu106:part0:2.5 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu106/2.5/board.xml as part xczu7ev-ffvc1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu106:part0:2.6 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu106/2.6/board.xml as part xczu7ev-ffvc1156-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu111:part0:1.2 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu111/1.2/board.xml as part xczu28dr-ffvg1517-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu111:part0:1.3 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu111/1.3/board.xml as part xczu28dr-ffvg1517-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu111:part0:1.4 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu111/1.4/board.xml as part xczu28dr-ffvg1517-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu1275:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu1275/1.0/board.xml as part xczu29dr-ffvf1760-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu1285:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu1285/1.0/board.xml as part xczu39dr-ffvf1760-2-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu208:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu208/production/2.0/board.xml as part xczu48dr-fsvg1517-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu208ld:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu208ld/production/2.0/board.xml as part xczu58dr-fsvg1517-2-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu216:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu216/production/2.0/board.xml as part xczu49dr-ffvf1760-2-e specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu216ld:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu216ld/production/2.0/board.xml as part xczu59dr-ffvf1760-2-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu670:part0:2.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu670/2.0/board.xml as part xczu67dr-fsve1156-2-i specified in board_part file is either invalid or not available
+WARNING: [Board 49-26] cannot add Board Part xilinx.com:zcu670ld:part0:1.0 available at /data/home/lincoln/2025.2/data/xhub/boards/XilinxBoardStore/boards/Xilinx/zcu670ld/1.0/board.xml as part xczu57dr-fsve1156-2-i specified in board_part file is either invalid or not available
+WARNING: [Project 1-5713] Board part '' set for the project  is not found. BoardPart property will be unset. Please select board from latest repo build 
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/data/home/lincoln/2025.2/data/ip'.
+# set NH_DIR   [file join $SCRIPT_DIR "Crystals-kyber.srcs/new_hardware"]
+# set SRC_NEW  [file join $SCRIPT_DIR "Crystals-kyber.srcs/sources_1/new"]
+# set SRC_IMP  [file join $SCRIPT_DIR "Crystals-kyber.srcs/sources_1/imports"]
+# set PRNG_DIR [file join $SCRIPT_DIR "../pseudo-random-number-generator_verilog-main/main/verilog"]
+# set X2X_SRC  [file join $SCRIPT_DIR "../X2X-main/src"]
+# set X2X_TB   [file join $SCRIPT_DIR "../X2X-main/src_tb"]
+# set synth_extra_files [list \
+#     [file join $PRNG_DIR "XORShifter.v"] \
+#     [file join $X2X_SRC  "D_reg.sv"] \
+#     [file join $X2X_SRC  "D_reg_NEG_EDGE.sv"] \
+#     [file join $X2X_SRC  "fullXOR.sv"] \
+#     [file join $X2X_SRC  "SecXOR.sv"] \
+#     [file join $X2X_SRC  "SecNOT.sv"] \
+#     [file join $X2X_SRC  "SecAnd.sv"] \
+#     [file join $X2X_SRC  "SecAnd_NEG_EDGE.sv"] \
+#     [file join $X2X_SRC  "SecOR_ALT.sv"] \
+#     [file join $X2X_SRC  "SecANDOR_ALT.sv"] \
+#     [file join $X2X_SRC  "triangle.sv"] \
+#     [file join $X2X_SRC  "box_HALFCYCLE.sv"] \
+#     [file join $X2X_SRC  "SecAdd_HALFCYCLE_STREAM.sv"] \
+#     [file join $X2X_SRC  "MaskConversion_2SHARE_HALFCYCLE_STREAM.sv"] \
+#     [file join $X2X_SRC  "MaskConversion_3SHARE_HALFCYCLE_STREAM.sv"] \
+#     [file join $X2X_SRC  "MaskConversion_HALFCYCLE_STREAM.sv"] \
+#     [file join $X2X_TB   "PRNG.sv"] \
+#     [file join $X2X_TB   "PRNG_engine_2SHARE.sv"] \
+#     [file join $X2X_TB   "PRNG_engine_3SHARE.sv"] \
+#     [file join $X2X_TB   "PRNG_engine_STREAM.sv"] \
+#     [file join $NH_DIR   "mask_polyfifo_x4.sv"] \
+#     [file join $NH_DIR   "masked_threshold_compare.sv"] \
+#     [file join $NH_DIR   "masked_compress_d1.sv"] \
+#     [file join $NH_DIR   "masked_compress_dN.sv"] \
+#     [file join $NH_DIR   "masked_compress_dN_full.sv"] \
+#     [file join $SRC_IMP  "new/NTT_core_Client_masked.v"] \
+#     [file join $SRC_IMP  "new/NTT_core_Server_masked.v"] \
+#     [file join $SRC_IMP  "new/Kyber_Client_masked.v"] \
+#     [file join $SRC_IMP  "new/Kyber_Server_masked.v"] \
+#     [file join $SRC_NEW  "Kyber_top.v"] \
+#     [file join $SRC_NEW  "Kyber_top_masked.v"] \
+#     [file join $NH_DIR   "Kyber_top_protected.sv"] \
+# ]
+# foreach f $synth_extra_files {
+#     if {[get_files -quiet -of_objects [get_filesets sources_1] $f] eq ""} {
+#         add_files -fileset sources_1 $f
+#     }
+# }
+# set_property file_type "SystemVerilog" \
+#     [get_files -of_objects [get_filesets sources_1] "*NTT_core_Server_masked.v"]
+# set_property top Kyber_top_protected [current_fileset]
+# set_property generic {COUNTERMEASURE=MASKING} [current_fileset]
+# puts "INFO: synth target = [get_property top      [current_fileset]]"
+INFO: synth target = Kyber_top_protected
+# puts "INFO: generics     = [get_property generic  [current_fileset]]"
+INFO: generics     = COUNTERMEASURE=MASKING
+# puts "INFO: part         = [get_property part     [current_project]]"
+INFO: part         = xc7a35tcsg324-1
+# puts "INFO: refreshing IP outputs..."
+INFO: refreshing IP outputs...
+# foreach ip [get_ips] {
+#     if {[catch {generate_target -force all $ip} err]} {
+#         puts "WARN: generate_target failed for $ip: $err"
+#     }
+# }
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'blk_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'blk_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'blk_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Miscellaneous' target for IP 'blk_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'blk_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'blk_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'blk_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'blk_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Miscellaneous' target for IP 'blk_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'blk_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'blk_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'blk_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'blk_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Miscellaneous' target for IP 'blk_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'blk_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_0'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_1'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_1'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_1'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_1'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_10'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_10'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_10'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_10'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_11'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_11'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_11'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_11'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_2'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_2'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_2'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_2'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_3'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_3'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_3'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_3'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_4'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_4'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_4'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_4'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_5'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_5'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_5'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_5'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_6'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_6'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_6'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_6'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_7'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_7'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_7'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_7'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_8'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_8'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_8'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_8'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'c_shift_ram_9'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'c_shift_ram_9'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'c_shift_ram_9'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'c_shift_ram_9'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_0'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_1'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_2'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_3'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_3'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_3'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_3'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_4'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_4'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_4'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_4'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_5'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_5'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_5'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_5'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_6'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_6'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_6'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_6'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'dist_mem_gen_7'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'dist_mem_gen_7'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'dist_mem_gen_7'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'dist_mem_gen_7'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'fifo_generator_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'fifo_generator_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'fifo_generator_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'fifo_generator_0'...
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'fifo_generator_1'...
+INFO: [Common 17-14] Message 'IP_Flow 19-1686' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+# puts "INFO: IP outputs refreshed."
+INFO: IP outputs refreshed.
+# foreach xci [glob -nocomplain [file join $SCRIPT_DIR "Crystals-kyber.srcs/sources_1/ip/*/*.xci"]] {
+#     if {[catch {read_ip -quiet $xci} err]} {
+#         puts "WARN: read_ip failed for $xci: $err"
+#     }
+# }
+# foreach dcp [get_files -quiet -all -filter "file_type==\"Design Checkpoint\""] {
+#     catch {set_property used_in_implementation false $dcp}
+# }
+# set_param ips.enableIPCacheLiteLoad 1
+# puts "INFO: IPs bound via read_ip + IP cache lite load enabled."
+INFO: IPs bound via read_ip + IP cache lite load enabled.
+# catch {config_webtalk -user off}
+# puts "INFO: starting synth_design..."
+INFO: starting synth_design...
+# if {[catch {synth_design -top Kyber_top_protected -generic COUNTERMEASURE=MASKING} err]} {
+#     puts "FAIL: synth_design errored: $err"
+#     exit 2
+# }
+Command: synth_design -top Kyber_top_protected -generic COUNTERMEASURE=MASKING
+Starting synth_design
+Using part: xc7a35tcsg324-1
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tcsg324-1
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 2232518
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2296.043 ; gain = 366.371 ; free physical = 363 ; free virtual = 63939
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-10929] literal value 'd8192 truncated to fit in 13 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv:46]
+WARNING: [Synth 8-10929] literal value 'd8192 truncated to fit in 13 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv:47]
+WARNING: [Synth 8-10929] literal value 'h2000 truncated to fit in 13 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:100]
+WARNING: [Synth 8-11065] parameter 'MTC_RND_TRI' becomes localparam in 'masked_compress_d1' with formal parameter declaration list [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:166]
+WARNING: [Synth 8-11065] parameter 'MTC_RND_BOX' becomes localparam in 'masked_compress_d1' with formal parameter declaration list [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:167]
+WARNING: [Synth 8-11065] parameter 'MTC_RND_AND' becomes localparam in 'masked_compress_d1' with formal parameter declaration list [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:169]
+WARNING: [Synth 8-10929] literal value 'h2000 truncated to fit in 13 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv:85]
+WARNING: [Synth 8-10929] literal value 'h38 truncated to fit in 5 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1066]
+WARNING: [Synth 8-10929] literal value 'h39 truncated to fit in 5 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1070]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:289]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:289]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:290]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:290]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:291]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:291]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:292]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:292]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:745]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:746]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux1_r2' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:749]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:750]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:801]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:802]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:828]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:828]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:829]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:830]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:847]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:847]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:848]
+WARNING: [Synth 8-6901] identifier 'unmasked_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:849]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1162]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1163]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1164]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1165]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1166]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1167]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1168]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1169]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1185]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1186]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1187]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1188]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1193]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1194]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1195]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1196]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1431]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1432]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1435]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1436]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1439]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1440]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1443]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1443]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1448]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1449]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1452]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1453]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1473]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1474]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1477]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1478]
+INFO: [Synth 8-11241] undeclared symbol 'ena_sft', assumed default net type 'wire' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server.v:626]
+INFO: [Synth 8-11241] undeclared symbol 'NTT_finish', assumed default net type 'wire' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server.v:633]
+WARNING: [Synth 8-10929] literal value 'h38 truncated to fit in 5 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server.v:465]
+WARNING: [Synth 8-10929] literal value 'h39 truncated to fit in 5 bits [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server.v:469]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:140]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:140]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:141]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:141]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:142]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:142]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:143]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r1_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:143]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:155]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:155]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:156]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux0_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:156]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:161]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:161]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:162]
+WARNING: [Synth 8-6901] identifier 'rdata_RAM_mux1_r2_m' is used before its declaration [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Client_masked.v:162]
+INFO: [Synth 8-11241] undeclared symbol 'ena_sft', assumed default net type 'wire' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server_masked.v:679]
+INFO: [Synth 8-11241] undeclared symbol 'NTT_finish', assumed default net type 'wire' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server_masked.v:686]
+INFO: [Synth 8-6157] synthesizing module 'Kyber_top_protected' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/Kyber_top_protected.sv:40]
+        Parameter COUNTERMEASURE bound to: MASKING - type: string 
+INFO: [Synth 8-6157] synthesizing module 'Kyber_top_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/Kyber_top_masked.v:9]
+        Parameter D_SEED bound to: 256'b0010110101111111011100110011011010011001011100111100110100101101000000110100100010110001110011000010010100011010110110000010111111011101000110100110101111011011111001000001000001101101000011001010101010010100011101101011000010100000001101011001100101111100 
+        Parameter M_SEED bound to: 256'b0001010101110110100110011111011001110110111111100000100111001100011101001010100010101001101000110111100111111110000011101100100000010011011111110100110110000111111000011111101011001000000001101010010010111011101111101010010111110111000000110111110000010100 
+INFO: [Synth 8-6157] synthesizing module 'Kyber_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server_masked.v:6]
+        Parameter D_SEED bound to: 256'b0010110101111111011100110011011010011001011100111100110100101101000000110100100010110001110011000010010100011010110110000010111111011101000110100110101111011011111001000001000001101101000011001010101010010100011101101011000010100000001101011001100101111100 
+INFO: [Synth 8-6157] synthesizing module 'NTT_core_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:14]
+INFO: [Synth 8-6157] synthesizing module 'mask_polyfifo_x4' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/mask_polyfifo_x4.sv:31]
+        Parameter SEED0 bound to: 2073880017 - type: integer 
+        Parameter SEED1 bound to: 406092530 - type: integer 
+        Parameter SEED2 bound to: -422869725 - type: integer 
+        Parameter SEED3 bound to: -1537270600 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'XORShifter' [/data/claude_sandbox/CRYSTALS-Kyber/pseudo-random-number-generator_verilog-main/main/verilog/XORShifter.v:22]
+INFO: [Synth 8-6155] done synthesizing module 'XORShifter' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/pseudo-random-number-generator_verilog-main/main/verilog/XORShifter.v:22]
+INFO: [Synth 8-6155] done synthesizing module 'mask_polyfifo_x4' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/mask_polyfifo_x4.sv:31]
+INFO: [Synth 8-6157] synthesizing module 'PRNG_engine_STREAM' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG_engine_STREAM.sv:2]
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter LSFR_WIDTH bound to: 32 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter RND_SHARES bound to: 10 - type: integer 
+        Parameter RND_SHARES_8bit bound to: 24 - type: integer 
+        Parameter SEED_WIDTH bound to: 768 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'PRNG_engine_2SHARE' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG_engine_2SHARE.sv:10]
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter LSFR_WIDTH bound to: 32 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter RND_SHARES bound to: 10 - type: integer 
+        Parameter RND_SHARES_8bit bound to: 24 - type: integer 
+        Parameter SEED_WIDTH bound to: 768 - type: integer 
+INFO: [Synth 8-155] case statement is not full and has no default [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG_engine_2SHARE.sv:124]
+INFO: [Synth 8-6157] synthesizing module 'PRNG' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG.sv:6]
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter LSFR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'PRNG' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG.sv:6]
+INFO: [Synth 8-6157] synthesizing module 'PRNG__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG.sv:6]
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+        Parameter LSFR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'PRNG__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG.sv:6]
+INFO: [Synth 8-6155] done synthesizing module 'PRNG_engine_2SHARE' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG_engine_2SHARE.sv:10]
+INFO: [Synth 8-6155] done synthesizing module 'PRNG_engine_STREAM' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src_tb/PRNG_engine_STREAM.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'masked_compress_d1' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:36]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter Q bound to: 13'b0110100000001 
+        Parameter LO bound to: 13'b0001101000001 
+        Parameter HI bound to: 13'b0100111000001 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+        Parameter X2X_RND_SHARES bound to: 10 - type: integer 
+        Parameter X2X_RND_SHARES_8bit bound to: 24 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'MaskConversion_HALFCYCLE_STREAM' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/MaskConversion_HALFCYCLE_STREAM.sv:2]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter RND_SHARES bound to: 10 - type: integer 
+        Parameter RND_SHARES_8bit bound to: 24 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'MaskConversion_2SHARE_HALFCYCLE_STREAM' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/MaskConversion_2SHARE_HALFCYCLE_STREAM.sv:7]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter RND_SHARES bound to: 10 - type: integer 
+        Parameter RND_SHARES_8bit bound to: 24 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'D_reg_NEG_EDGE' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg_NEG_EDGE' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg_NEG_EDGE__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+        Parameter PARAM_WIDTH bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg_NEG_EDGE__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'SecXOR' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecXOR' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'SecNOT' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecNOT' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'SecAdd_HALFCYCLE_STREAM' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'box_HALFCYCLE' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv:2]
+        Parameter FINAL_BOX bound to: 0 - type: integer 
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecAnd' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 8 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized1' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6157] synthesizing module 'D_reg_NEG_EDGE__parameterized1' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg_NEG_EDGE__parameterized1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg_NEG_EDGE.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'SecAnd_NEG_EDGE' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd_NEG_EDGE.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 8 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd_NEG_EDGE' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd_NEG_EDGE.sv:4]
+INFO: [Synth 8-6157] synthesizing module 'SecOR_ALT' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv:6]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecNOT__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecNOT__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecNOT.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'SecOR_ALT' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv:6]
+INFO: [Synth 8-6155] done synthesizing module 'box_HALFCYCLE' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'box_HALFCYCLE__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv:2]
+        Parameter FINAL_BOX bound to: 1 - type: integer 
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'box_HALFCYCLE__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/box_HALFCYCLE.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized2' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 3 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized2' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized3' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 2 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized3' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized4' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 4 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized4' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'triangle' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/triangle.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecANDOR_ALT' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecANDOR_ALT.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecOR_ALT__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv:6]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecAnd__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 13 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6155] done synthesizing module 'SecOR_ALT__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecOR_ALT.sv:6]
+INFO: [Synth 8-6155] done synthesizing module 'SecANDOR_ALT' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecANDOR_ALT.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'triangle' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/triangle.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'SecAdd_HALFCYCLE_STREAM' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+INFO: [Synth 8-6157] synthesizing module 'fullXOR' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/fullXOR.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'fullXOR' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/fullXOR.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'SecXOR__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv:2]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecXOR__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecXOR.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'MaskConversion_2SHARE_HALFCYCLE_STREAM' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/MaskConversion_2SHARE_HALFCYCLE_STREAM.sv:7]
+INFO: [Synth 8-6155] done synthesizing module 'MaskConversion_HALFCYCLE_STREAM' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/MaskConversion_HALFCYCLE_STREAM.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'masked_threshold_compare' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv:38]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+        Parameter LO bound to: 13'b0001101000001 
+        Parameter HI bound to: 13'b0100111000001 
+INFO: [Synth 8-6157] synthesizing module 'SecAdd_HALFCYCLE_STREAM__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAdd_HALFCYCLE_STREAM__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+INFO: [Synth 8-6157] synthesizing module 'SecAnd__parameterized1' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 1 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd__parameterized1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6155] done synthesizing module 'masked_threshold_compare' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv:38]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_d1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:36]
+INFO: [Synth 8-6157] synthesizing module 'masked_compress_dN_full' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv:27]
+        Parameter D bound to: 11 - type: integer 
+        Parameter Q bound to: 13'b0110100000001 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+        Parameter X2X_RND_SHARES bound to: 10 - type: integer 
+        Parameter X2X_RND_SHARES_8bit bound to: 24 - type: integer 
+        Parameter LD_RND_TRI bound to: 2 - type: integer 
+        Parameter LD_RND_BOX bound to: 11 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'masked_compress_dN' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv:38]
+        Parameter D bound to: 11 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+        Parameter Q bound to: 13'b0110100000001 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecAnd__parameterized2' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 12 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized5' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 12 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized5' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd__parameterized2' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_dN' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv:38]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_dN_full' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv:27]
+WARNING: [Synth 8-151] case item 6'b011000 is unreachable [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1045]
+WARNING: [Synth 8-151] case item 6'b011001 is unreachable [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1045]
+INFO: [Synth 8-155] case statement is not full and has no default [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1319]
+INFO: [Synth 8-6157] synthesizing module 'butterfly_Ser' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:4]
+ERROR: [Synth 8-439] module 'mult_gen_0' not found [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:261]
+ERROR: [Synth 8-6156] failed synthesizing module 'butterfly_Ser' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:4]
+ERROR: [Synth 8-6156] failed synthesizing module 'NTT_core_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:14]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server_masked.v:6]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_top_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/Kyber_top_masked.v:9]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_top_protected' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/Kyber_top_protected.sv:40]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2403.980 ; gain = 474.309 ; free physical = 425 ; free virtual = 63825
+---------------------------------------------------------------------------------
+RTL Elaboration failed
+INFO: [Common 17-83] Releasing license: Synthesis
+97 Infos, 83 Warnings, 0 Critical Warnings and 7 Errors encountered.
+synth_design failed
+synth_design: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2403.988 ; gain = 763.359 ; free physical = 425 ; free virtual = 63825
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 2018.474; main = 1670.386; forked = 348.088
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3393.008; main = 2403.984; forked = 989.023
+FAIL: synth_design errored: ERROR: [Common 17-69] Command failed: Synthesis failed - please see the console or run log file for details
+
+INFO: [Common 17-206] Exiting Vivado at Thu May 28 20:57:43 2026...
+❯ 
+        Parameter HI bound to: 13'b0100111000001 
+INFO: [Synth 8-6157] synthesizing module 'SecAdd_HALFCYCLE_STREAM__parameterized0' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+        Parameter HALFCYCLE bound to: 1 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter PARAM_WIDTH bound to: 13 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAdd_HALFCYCLE_STREAM__parameterized0' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAdd_HALFCYCLE_STREAM.sv:3]
+INFO: [Synth 8-6157] synthesizing module 'SecAnd__parameterized1' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 1 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd__parameterized1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6155] done synthesizing module 'masked_threshold_compare' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_threshold_compare.sv:38]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_d1' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_d1.sv:36]
+INFO: [Synth 8-6157] synthesizing module 'masked_compress_dN_full' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv:27]
+        Parameter D bound to: 11 - type: integer 
+        Parameter Q bound to: 13'b0110100000001
+        Parameter PARAM_WIDTH bound to: 13 - type: integer
+        Parameter N_SHARES bound to: 2 - type: integer
+        Parameter N_STAGES bound to: 4 - type: integer
+        Parameter X2X_RND_SHARES bound to: 10 - type: integer
+        Parameter X2X_RND_SHARES_8bit bound to: 24 - type: integer
+        Parameter LD_RND_TRI bound to: 2 - type: integer
+        Parameter LD_RND_BOX bound to: 11 - type: integer
+INFO: [Synth 8-6157] synthesizing module 'masked_compress_dN' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv:38]
+        Parameter D bound to: 11 - type: integer
+        Parameter PARAM_WIDTH bound to: 13 - type: integer
+        Parameter Q bound to: 13'b0110100000001 
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter N_STAGES bound to: 4 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'SecAnd__parameterized2' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+        Parameter N_SHARES bound to: 2 - type: integer 
+        Parameter WIDTH bound to: 12 - type: integer 
+        Parameter PIPELINE bound to: 1 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'D_reg__parameterized5' [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+        Parameter PARAM_WIDTH bound to: 12 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'D_reg__parameterized5' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/D_reg.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'SecAnd__parameterized2' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/X2X-main/src/SecAnd.sv:4]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_dN' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN.sv:38]
+INFO: [Synth 8-6155] done synthesizing module 'masked_compress_dN_full' (0#1) [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/masked_compress_dN_full.sv:27]
+WARNING: [Synth 8-151] case item 6'b011000 is unreachable [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1045]
+WARNING: [Synth 8-151] case item 6'b011001 is unreachable [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1045]
+INFO: [Synth 8-155] case statement is not full and has no default [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:1319]
+INFO: [Synth 8-6157] synthesizing module 'butterfly_Ser' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:4]
+ERROR: [Synth 8-439] module 'mult_gen_0' not found [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:261]
+ERROR: [Synth 8-6156] failed synthesizing module 'butterfly_Ser' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/butterfly_Server.v:4]
+ERROR: [Synth 8-6156] failed synthesizing module 'NTT_core_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/NTT_core_Server_masked.v:14]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_Server_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/imports/new/Kyber_Server_masked.v:6]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_top_masked' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/new/Kyber_top_masked.v:9]
+ERROR: [Synth 8-6156] failed synthesizing module 'Kyber_top_protected' [/data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/new_hardware/Kyber_top_protected.sv:40]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB)
+quote> 

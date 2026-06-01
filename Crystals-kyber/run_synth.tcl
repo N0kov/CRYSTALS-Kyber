@@ -110,6 +110,41 @@ foreach dcp [get_files -quiet -all -filter "file_type==\"Design Checkpoint\""] {
 set_param ips.enableIPCacheLiteLoad 1
 puts "INFO: IPs bound via read_ip + IP cache lite load enabled."
 
+# ---------------------------------------------------------------- fix #2c
+# Build a fresh OOC checkpoint for every IP that needs one. The project's
+# IPs are configured with synth_checkpoint_mode=Singular, meaning top-level
+# synth_design treats each as a black box and links its .dcp at the end.
+# launch_runs synth_1 normally does this automatically; running synth_design
+# in-process does NOT — so without an explicit synth_ip pass, IPs whose
+# cached DCPs are missing or built for the wrong part vanish from elaboration
+# (the "module 'mult_gen_0' not found" failure we hit on 2025.2).
+puts "INFO: building OOC checkpoints for all IPs..."
+# Skip rule must NOT use "DCP file exists" — the legacy 2017.3 DCPs are still
+# on disk for IPs that the retarget script touched (fifo_generator_6, etc.),
+# and they're built for the wrong part (xc7a12t). Detect staleness by reading
+# the project part out of the cached _stub.v (Vivado writes the device name
+# into the header) and synth_ip whenever it doesn't match.
+set proj_part [get_property part [current_project]]
+set proj_device [string range $proj_part 0 [expr {[string first - $proj_part] - 1}]]
+foreach ip [get_ips] {
+    set dcp_file  [file join $SCRIPT_DIR "Crystals-kyber.gen/sources_1/ip/$ip/$ip.dcp"]
+    set stub_file [file join $SCRIPT_DIR "Crystals-kyber.gen/sources_1/ip/$ip/${ip}_stub.v"]
+    set need 1
+    if {[file exists $dcp_file] && [file exists $stub_file]} {
+        set fh [open $stub_file r]
+        set head [read $fh 1024]
+        close $fh
+        if {[string match "*Device      : ${proj_device}*" $head]} { set need 0 }
+    }
+    if {!$need} { continue }
+    if {[catch {synth_ip [get_ips $ip]} err]} {
+        puts "WARN: synth_ip failed for $ip: $err"
+    } else {
+        puts "INFO: synth_ip OK for $ip"
+    }
+}
+puts "INFO: OOC checkpoint build complete."
+
 # ---------------------------------------------------------------- fix #3
 # Disable WebTalk so XilReg host-info code path isn't exercised (the prior
 # segfault location). Per-user setting; may emit a notice that's harmless.
@@ -124,6 +159,9 @@ if {[catch {synth_design -top Kyber_top_protected -generic COUNTERMEASURE=MASKIN
     exit 2
 }
 puts "INFO: synth_design complete."
+
+write_checkpoint -force [file join $SCRIPT_DIR "post_synth.dcp"]
+puts "INFO: post-synth checkpoint written."
 
 report_utilization     -file [file join $SCRIPT_DIR "synth_utilization.rpt"]
 report_timing_summary  -file [file join $SCRIPT_DIR "synth_timing_summary.rpt"]
