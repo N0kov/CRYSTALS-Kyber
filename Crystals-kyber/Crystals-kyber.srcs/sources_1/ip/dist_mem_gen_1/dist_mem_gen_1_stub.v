@@ -1,22 +1,25 @@
-// Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+// Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+// Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
-// Tool Version: Vivado v.2017.3 (win64) Build 2018833 Wed Oct  4 19:58:22 MDT 2017
-// Date        : Fri Jan  8 10:42:44 2021
-// Host        : XINGYF14 running 64-bit major release  (build 9200)
+// Tool Version: Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+// Date        : Fri May 29 14:06:22 2026
+// Host        : xanadu running 64-bit Manjaro Linux
 // Command     : write_verilog -force -mode synth_stub
-//               E:/Vivado_projects/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_1/dist_mem_gen_1_stub.v
+//               /data/claude_sandbox/CRYSTALS-Kyber/Crystals-kyber/Crystals-kyber.srcs/sources_1/ip/dist_mem_gen_1/dist_mem_gen_1_stub.v
 // Design      : dist_mem_gen_1
 // Purpose     : Stub declaration of top-level module interface
-// Device      : xc7a12tcpg238-1
+// Device      : xc7a35tcsg324-1
 // --------------------------------------------------------------------------------
 
 // This empty module with port declaration file causes synthesis tools to infer a black box for IP.
 // The synthesis directives are for Synopsys Synplify support to prevent IO buffer insertion.
 // Please paste the declaration into a Verilog source file or add the file as an additional source.
-(* x_core_info = "dist_mem_gen_v8_0_12,Vivado 2017.3" *)
+(* CHECK_LICENSE_TYPE = "dist_mem_gen_1,dist_mem_gen_v8_0_17,{}" *) (* RDI_HAS_ANNOTATION = "1" *) (* core_generation_info = "dist_mem_gen_1,dist_mem_gen_v8_0_17,{x_ipProduct=Vivado 2025.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=dist_mem_gen,x_ipVersion=8.0,x_ipCoreRevision=17,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_FAMILY=artix7,C_ADDR_WIDTH=7,C_DEFAULT_DATA=0,C_DEPTH=128,C_HAS_CLK=1,C_HAS_D=0,C_HAS_DPO=0,C_HAS_DPRA=0,C_HAS_I_CE=0,C_HAS_QDPO=0,C_HAS_QDPO_CE=0,C_HAS_QDPO_CLK=0,C_HAS_QDPO_RST=0,C_HAS_QDPO_SRST=0,C_HAS_QSPO=1,C_HAS_QSPO_CE=0,C_HAS_QSPO_RST=0,C_HAS_QSPO_SRST=0,C_HAS_SPO=0,C_HAS_WE=0,C_MEM_INIT_FILE=dist_mem_gen_1.mif,C_ELABORATION_DIR=./,C_MEM_TYPE=0,C_PIPELINE_STAGES=0,C_QCE_JOINED=0,C_QUALIFY_WE=0,C_READ_MIF=1,C_REG_A_D_INPUTS=0,C_REG_DPRA_INPUT=0,C_SYNC_ENABLE=1,C_WIDTH=12,C_PARSER_TYPE=1}" *) 
+(* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "dist_mem_gen_v8_0_17,Vivado 2025.2" *) 
 module dist_mem_gen_1(a, clk, qspo)
-/* synthesis syn_black_box black_box_pad_pin="a[6:0],clk,qspo[11:0]" */;
+/* synthesis syn_black_box black_box_pad_pin="a[6:0],qspo[11:0]" */
+/* synthesis syn_force_seq_prim="clk" */;
   input [6:0]a;
-  input clk;
+  input clk /* synthesis syn_isclock = 1 */;
   output [11:0]qspo;
 endmodule

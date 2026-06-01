@@ -688,6 +688,13 @@ NTT_core_Server_masked ntt(
 .dout(NTT_dout)
 );
 
+// synthesis translate_off
+// =============================================================================
+// SIM-ONLY: shadow unmasked NTT + divergence comparator + share-invariant check.
+// MUST NOT be synthesized — the shadow holds cleartext secrets next to the
+// masked design and would defeat the masking countermeasure entirely. Gated
+// with translate_off/on so Vivado strips this region during synth_design.
+// =============================================================================
 // DIVERGENCE COMPARATOR: shadow unmasked NTT wired with same inputs.
 // All outputs go to _shadow signals (dead-ended). xsim will run both in
 // parallel; we compare internal wdata_RAM via hierarchical references in the
@@ -1048,6 +1055,7 @@ always @(posedge clk) begin
         inv_diff_cnt_R2 <= inv_diff_cnt_R2 + 1;
     end
 end
+// synthesis translate_on
 hash_core_Server hash(
 .clk(clk),
 .rst(rst),
@@ -1086,6 +1094,9 @@ fifo_generator_3 OFIFO(.clk(clk),.srst(rst),.din(OFIFO_din),.wr_en(OFIFO_wen),.r
 fifo_generator_4 DFIFO0(.clk(clk),.srst(rst),.din(DFIFO0_din),.wr_en(DFIFO0_wen),.rd_en(req_D0),.dout(DFIFO0_dout),.full(DFIFO0_full),.empty(DFIFO0_empty),.prog_full_thresh(DFIFO0_prog_thresh),.prog_full(DFIFO0_prog_full));
 fifo_generator_5 DFIFO1(.clk(clk),.srst(rst),.din(DFIFO1_din),.wr_en(DFIFO1_wen),.rd_en(req_D1),.dout(DFIFO1_dout),.full(DFIFO1_full),.empty(DFIFO1_empty));
 
+// synthesis translate_off
+// SIM-ONLY: bring-up $display instrumentation. No hardware effect, but gated
+// to keep synth logs clean and prevent any counter regs from being inferred.
 integer ks_wen_cnt = 0;
 integer ks_dec_cnt = 0;
 integer ks_d0_cnt  = 0;
@@ -1138,5 +1149,6 @@ always @(posedge clk) begin
             $display("[KS_PULL1 t=%0t #%0d] DFIFO1_dout=%h DFIFO1_empty=%b NTT_din=%h sel=%b%b%b%b", $time, ks_d1_cnt, DFIFO1_dout, DFIFO1_empty, NTT_din, ofifo0_req_r1, ofifo1_req_r1, req_D0_r1, req_D1_r1);
     end
 end
+// synthesis translate_on
 
 endmodule

@@ -143,7 +143,7 @@ endcase
 assign ofifo1_din = {eta3_bit,decode_dout};
 assign ofifo0_wen = ~patt_bit&~eta3_bit & decode_valid & ~fifo_GENA_ctr[7] & (ofifo_din_valid0 & ofifo_din_valid1 | (ofifo_din_valid0 ^ ofifo_din_valid1) & fifo_data_parity);
 assign ofifo1_wen = (patt_bit|eta3_bit) & decode_valid & ~ofifo1_full_r1;
-always @(posedge clk or negedge rst) begin
+always @(posedge clk) begin
 	if(rst)
 		ofifo1_full_r1 <= 1'h 0;
 	else if(keccak_ready)
